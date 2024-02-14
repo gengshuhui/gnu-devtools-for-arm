@@ -48,16 +48,14 @@ def stageVenv = "${params.BLD_PYTHON_ENV_PATH}"
                                 sshagent(credentials: ['dgboter-ssh']) {
                                     
                                     sh """\
-                                        mkdir -p src
+                                        mkdir src
                                         ln -s $WORKSPACE src/gnu-devtools-for-arm
-                                        wget $TOOLCHAIN_SRC_SPC_URL -O arm-gnu-toolchain-src-snapshot.txt
-                                        python3 extras/source-fetch.py checkout --shallow --srcdir src .additional_repos
+                                        wget $TOOLCHAIN_TARBALL_URL -O arm-gnu-toolchain-src-snapshot.tar.xz
+                                        tar -xf arm-gnu-toolchain-src-snapshot.tar.xz -C $WORKSPACE/src
                                     """
                                     runAutoConf(["$WORKSPACE/src/isl", "$WORKSPACE/src/libexpat/expat"])
-
                                     sh"""
                                         export PATH="${repo}:$PATH"
-                                        python3 extras/source-fetch.py checkout --shallow --srcdir src arm-gnu-toolchain-src-snapshot.txt
                                         build-gnu-toolchain.sh ${job.params} --builddir=$WORKSPACE/build
                                     """
                                 }
@@ -76,7 +74,7 @@ pipeline {
         def dockerImgName = 'build/ubu2204gnudevtools'
         def localUser = 'dgboter'
         def repo = "$WORKSPACE/src/gnu-devtools-for-arm"
-        TOOLCHAIN_SRC_SPC_URL="https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/srcrel/arm-gnu-toolchain-src-snapshot-13.2.rel1-manifest.txt"
+        TOOLCHAIN_TARBALL_URL="https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/srcrel/arm-gnu-toolchain-src-snapshot-13.2.rel1.tar.xz"
     }
     options {
         // This is required so that we first clean the workspace and then we do the scm checkout
