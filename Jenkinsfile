@@ -1,6 +1,8 @@
 
 // cplatforms: linux/arm64, linux/arm/v7, linux/amd64
-def devtools = [
+def devtools =
+[
+    buildBaremetal: [
         // baremetal targets
         [
             id: 'H:aarch64_none_linux_gnu T:aarch64_none_elf',
@@ -24,31 +26,6 @@ def devtools = [
             id: 'H:x86_64_none_linux_gnu T:arm_none_eabi',
             label: 'rhe8 && x86_64 && docker',
             params: '--target=arm-none-eabi --aprofile -- --host=x86_64-none-linux-gnu --release --package --enable-newlib-nano --enable-gdb-with-python=yes',
-            cplatform: 'linux/amd64'
-        ],
-        // linux targetx
-        [
-            id: 'H:aarch64_none_linux_gnu T:aarch64_none_linux_gnu',
-            label: 'aarch64 && docker',
-            params: '--target=aarch64-none-linux-gnu -- --host=aarch64-none-linux-gnu --config-flags-libc="--enable-crypt" --release --package --enable-gdb-with-python=yes',
-            cplatform: 'linux/arm64'
-        ],
-        [
-            id: 'H:x86_64_none_linux_gnu T:aarch64_none_linux_gnu',
-            label: 'rhe8 && x86_64 && docker',
-            params: '--target=aarch64-none-linux-gnu -- --host=x86_64-none-linux-gnu --config-flags-libc="--enable-crypt" --release --package --enable-gdb-with-python=yes',
-            cplatform: 'linux/amd64'
-        ],
-        [
-            id: 'H:aarch64_none_linux_gnu T:arm_none_linux_gnueabihf',
-            label: 'aarch64 && docker',
-            params: '--target=arm-none-linux-gnueabihf -- --host=aarch64-none-linux-gnu --config-flags-libc="--enable-crypt" --release --package --enable-gdb-with-python=yes',
-            cplatform: 'linux/arm64'
-        ],
-        [
-            id: 'H:x86_64_none_linux_gnu T:arm_none_linux_gnueabihf',
-            label: 'rhe8 && x86_64 && docker',
-            params: '--target=arm-none-linux-gnueabihf -- --host=x86_64-none-linux-gnu --config-flags-libc="--enable-crypt"  --release --package --enable-gdb-with-python=yes',
             cplatform: 'linux/amd64'
         ],
         // MAC
@@ -81,7 +58,35 @@ def devtools = [
             cplatform: ''
         ]
         */
+    ],
+    buildCrossLinux: [
+        // linux target
+        [
+            id: 'H:aarch64_none_linux_gnu T:aarch64_none_linux_gnu',
+            label: 'aarch64 && docker',
+            params: '--target=aarch64-none-linux-gnu -- --host=aarch64-none-linux-gnu --config-flags-libc="--enable-crypt" --release --package --enable-gdb-with-python=yes',
+            cplatform: 'linux/arm64'
+        ],
+        [
+            id: 'H:x86_64_none_linux_gnu T:aarch64_none_linux_gnu',
+            label: 'rhe8 && x86_64 && docker',
+            params: '--target=aarch64-none-linux-gnu -- --host=x86_64-none-linux-gnu --config-flags-libc="--enable-crypt" --release --package --enable-gdb-with-python=yes',
+            cplatform: 'linux/amd64'
+        ],
+        [
+            id: 'H:aarch64_none_linux_gnu T:arm_none_linux_gnueabihf',
+            label: 'aarch64 && docker',
+            params: '--target=arm-none-linux-gnueabihf -- --host=aarch64-none-linux-gnu --config-flags-libc="--enable-crypt" --release --package --enable-gdb-with-python=yes',
+            cplatform: 'linux/arm64'
+        ],
+        [
+            id: 'H:x86_64_none_linux_gnu T:arm_none_linux_gnueabihf',
+            label: 'rhe8 && x86_64 && docker',
+            params: '--target=arm-none-linux-gnueabihf -- --host=x86_64-none-linux-gnu --config-flags-libc="--enable-crypt"  --release --package --enable-gdb-with-python=yes',
+            cplatform: 'linux/amd64'
+        ]
     ]
+]
 
 def doBuild(jobSpecs) {
     stage('Checkout') {
@@ -104,7 +109,6 @@ def doBuild(jobSpecs) {
     }
 }
 
-
 def buildInContainer(jobSpecs) {
     stage("Run container") {
         def uid = sh(script: 'id -u', returnStdout: true).trim()
@@ -122,9 +126,6 @@ def buildInContainer(jobSpecs) {
         }
     }
 }
-
-
-
 
 def runAutoConf(directorys) {
     directorys.each { str ->
@@ -155,11 +156,44 @@ def generateStage(jobSpecs) {
     }
 }
 
-
-def devtoolsBuildMap = devtools.collectEntries {
-    ["${it}" : generateStage(it)]
+def buildDevtoolsMap(devtools) {
+    def devtoolsBuildMap = [:]
+    buildScriptTargets.each {
+        buildScript ->
+        def targets = devtools["${buildScript}"]
+        devtoolsBuildMap += targets.collectEntries {
+            ["${it}" : generateStage(it)]
+        }
+    }
+    return devtoolsBuildMap
 }
 
+def selectBuildScriptTargets() {
+    buildScriptTargets = []
+    def scmVars = checkout scm
+    def gitFilesDiff = sh(script: "git diff-tree --no-commit-id --name-only -r ${scmVars.GIT_COMMIT}", returnStdout: true).trim().split('\n')
+    println "Changed files: ${gitFilesDiff}"
+    gitFilesDiff.each {
+        file ->
+        if ("${file}" ==~ /build-baremetal-toolchain.sh/) {
+            if (!buildScriptTargets.contains("buildBaremetal")) {
+                buildScriptTargets.push("buildBaremetal");
+            }
+        } else if ("${file}" ==~ /build-cross-linux-toolchain.sh/) {
+            if (!buildScriptTargets.contains("buildCrossLinux")) {
+                buildScriptTargets.push("buildCrossLinux");
+            }
+        } else if ("${file}" ==~ /build-gnu-toolchain.sh/ || "${file}" ==~ /utilities.sh/) {
+            if (!buildScriptTargets.contains("buildBaremetal")) {
+                buildScriptTargets.push("buildBaremetal");
+            }
+            if (!buildScriptTargets.contains("buildCrossLinux")) {
+                buildScriptTargets.push("buildCrossLinux");
+            }
+        }
+    }
+    println "Build targets: ${buildScriptTargets}"
+}
 
 pipeline {
     environment {
@@ -175,11 +209,21 @@ pipeline {
     }
     agent { label 'aarch64' }
     stages {
+        stage('Check deltas') {
+            steps {
+                script {
+                    cleanWs()
+                    selectBuildScriptTargets()
+                }
+            }
+        }
+
         stage('Run all builds') {
+            when { expression { !buildScriptTargets.isEmpty() } }
             steps {
                 script {
                     // Generated parallel stages for builds
-                    parallel devtoolsBuildMap
+                    parallel buildDevtoolsMap(devtools)
                 }
             }
         }
