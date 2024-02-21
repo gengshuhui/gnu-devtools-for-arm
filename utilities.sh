@@ -124,10 +124,10 @@ find_source_tree ()
   do
     if [[ "$d" == "gcc" ]]
     then
-      for x in `ls "$srcdir" | grep "^arm-gnu-toolchain-src-snapshot[0-9.-]*" | sort`
+      for x in `find "$srcdir" -maxdepth 1 -type d -printf '%f\n' | grep "^arm-gnu-toolchain-src-snapshot[0-9.-]*" | sort`
       do
-	echo "$srcdir/$x"
-	return 0
+        echo "$srcdir/$x"
+        return 0
       done
     fi
     for x in `ls "$srcdir" | grep "^$d[0-9.-]*" | sort`
