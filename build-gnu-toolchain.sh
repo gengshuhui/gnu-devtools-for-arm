@@ -13,6 +13,13 @@ PS4='+$(date +%Y-%m-%d:%H:%M:%S) (${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FU
 
 execdir=`dirname "$0"`
 execdir=`cd "$execdir"; pwd`
+script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+if [ ! -f "$script_dir/utilities.sh" ]; then
+  echo "error:Could not find helper script at $script_dir/utilities.sh"
+  exit 1
+else
+  source $script_dir/utilities.sh
+fi
 
 variant=`basename $execdir`
 
@@ -171,6 +178,8 @@ This script is a top level driver for the:
 
 EOF
 }
+
+set_darwin_envvars
 
 # Parse command-line options
 args=$(getopt -ohj:l:x -l aprofile,check-gdb,no-check-gdb,debug,debug-target,dejagnu-site:,dejagnu-src:,disable-gdb,disable-multilib,morello,extra:,native,rmprofile,target:,with-arch:,builddir:,host-toolchain:,target-board: -n $(basename "$0") -- "$@")

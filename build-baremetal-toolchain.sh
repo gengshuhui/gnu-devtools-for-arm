@@ -22,17 +22,8 @@ fi
 tmpdir=$(mktemp -d)
 trap cleanup 0
 
-#FIXME: This MacOSX-specific handling is a bit of a hack. Ideally it should be handled by some
-# previous machine setup step.
-BREW_DEFAULT_PATH="/usr/local"  # Default for x86_64 MacOSX
 if [ "$(uname -s)" == "Darwin" ]; then
-
-  if [[ "$(uname -m)" == "arm64" ]]; then
-    BREW_DEFAULT_PATH="/opt/homebrew"  # Default for applesilicon
-  fi
-  # macOS provides a stripped-down BSD getopt, we need GNU getopt. Expect to
-  # find it in the below directory.
-  export PATH="${BREW_DEFAULT_PATH}/bin:${BREW_DEFAULT_PATH}/opt/gnu-getopt/bin:$PATH"
+  set_darwin_envvars
 fi
 
 usage ()

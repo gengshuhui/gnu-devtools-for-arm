@@ -373,3 +373,37 @@ check_if_readable()
     exit 1
   fi
 }
+
+get_brew_pkg_version()
+{
+  local libpath="$1"
+  version=$(ls -d ${libpath} | awk -F'[@/]' '{print $6}')
+  echo $version
+}
+
+add_to_path()
+{
+  local path_to_add="$1"
+  export PATH="${path_to_add}:$PATH"
+}
+
+set_darwin_envvars()
+{
+  BREW_DEFAULT_PATH="/usr/local"  # Default for x86_64 MacOSX
+  READLINK_CMD=readlink
+  PR_CMD=pr
+  if [[ "$(uname -m)" == "arm64" ]]; then
+    BREW_DEFAULT_PATH="/opt/homebrew" # Default for applesilicon
+  fi
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    READLINK_CMD=greadlink  # Requires brew install coreutils
+    PR_CMD=gpr
+    add_to_path "${BREW_DEFAULT_PATH}/opt/gnu-sed/libexec/gnubin"
+    add_to_path "${BREW_DEFAULT_PATH}/bin"
+    add_to_path "${BREW_DEFAULT_PATH}/opt/bison/bin"
+    add_to_path "${BREW_DEFAULT_PATH}/opt/findutils/libexec/gnubin"
+    add_to_path "${BREW_DEFAULT_PATH}/opt/gnu-getopt/bin"
+    TEXINFO_VERSION=$(get_brew_pkg_version "${BREW_DEFAULT_PATH}/opt/texinfo*") # To find version of texinfo installed
+    add_to_path "${BREW_DEFAULT_PATH}/opt/texinfo@${TEXINFO_VERSION}/bin"
+  fi
+}

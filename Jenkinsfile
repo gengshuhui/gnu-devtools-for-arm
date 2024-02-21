@@ -40,10 +40,6 @@ def devtools =
 
         ],
         // MAC
-        /*
-         * MacOS builds disabled because of the failure caused by autoreconf.
-         * Once a proper solution is introduced to run autoconf, we will run the builds on mac too.
-         * See: https://jira.arm.com/browse/GNUTOOLS-14690
         [
             id: 'H:arm64_apple_darwin T:aarch64_none_elf',
             label: 'Darwin && arm64',
@@ -72,7 +68,6 @@ def devtools =
             params: '--target=arm-none-eabi -- --host=x86_64-apple-darwin --release --package --enable-gdb-with-python=no',
             cplatform: ''
         ]
-        */
     ],
     buildCrossLinux: [
         // linux target
