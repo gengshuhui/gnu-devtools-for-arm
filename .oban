@@ -1,0 +1,4 @@
+[oban-scripts]
+type=git
+url=ssh://eu-gerrit-1.euhpc.arm.com:29418/dsg-gnu/Internal/oban-scripts
+version=master
