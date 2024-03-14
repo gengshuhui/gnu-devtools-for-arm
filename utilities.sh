@@ -353,3 +353,23 @@ check_in_newlib()
     djsplice --directory "$resultdir/multilib" --scan newlib.log -o "$resultdir/newlib.log"
   fi
 }
+
+set_env_var()
+{
+  local var_name="$1"
+  local var_content="$2"
+
+  if test -z ${!var_name:-""}
+  then
+    export ${var_name}="${var_content}"
+  fi
+}
+
+check_if_readable()
+{
+  local var_name="$1"
+  if [ ! -r $var_name ]; then
+    printf "error: missing $var_name\n" >&2
+    exit 1
+  fi
+}

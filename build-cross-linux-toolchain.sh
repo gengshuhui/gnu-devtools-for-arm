@@ -668,23 +668,21 @@ fi
 
 eval libc_src="\${${libname}_src}"
 
+# Skipping dejagnu checks as testing not yet implemented
+# Set vars to prevent errors
+dejagnu_src=
+dejagnu_site=
+
 # dejagnu site.exp
-dejagnu_site="${dejagnu_site:-site-exhaustive-fastmodels.exp}"
-if [ -z "${dejagnu_src:-}" ]; then
-  ## dejagnu is awkward we should find it in the gnu-devtools-for-arm component
-  find_component_or_error "$srcdir/gnu-devtools-for-arm" dejagnu
-fi
+# dejagnu_site="${dejagnu_site:-site-exhaustive-fastmodels.exp}"
 
-# Set the DEJAGNU environment variable for check targets
-if test -z ${DEJAGNU:-""}
-then
-  export DEJAGNU="$dejagnu_src/$dejagnu_site"
-fi
-
-if [ ! -r $DEJAGNU ]; then
-  printf "error: missing $DEJAGNU\n" >&2
-  exit 1
-fi
+# if [ -z "${dejagnu_src:-}" ]; then
+#  ## dejagnu is awkward we should find it in the gnu-devtools-for-arm component
+#  find_component_or_error "$srcdir/gnu-devtools-for-arm" dejagnu
+# fi
+# ##Set the DEJAGNU environment variable for check targets
+#set_env_var DEJAGNU "$dejagnu_src/$dejagnu_site"
+#check_if_readable $DEJAGNU
 
 std_libc_config_opts="--enable-shared --with-tls --disable-profile --disable-omitfp --disable-bounded --disable-sanity-checks"
 
@@ -1381,6 +1379,7 @@ EOF
     ;;
 
   check)
+    printf "warning: scripts don't currently support test features.\n" >&2
     push_stages ${check_targets}
     ;;
 
