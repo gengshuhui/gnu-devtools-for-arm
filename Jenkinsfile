@@ -13,7 +13,6 @@ def devtools =
             target: 'aarch64-none-elf',
             params: '--target=aarch64-none-elf -- --host=aarch64-none-linux-gnu --release --package --enable-gdb-with-python=yes',
             cplatform: 'linux/arm64',
-            test: ''
         ],
         [
             id: 'H:x86_64_none_linux_gnu T:aarch64_none_elf',
@@ -21,7 +20,6 @@ def devtools =
             target: 'aarch64-none-elf',
             params: '--target=aarch64-none-elf -- --host=x86_64-none-linux-gnu --release --package --enable-gdb-with-python=yes',
             cplatform: 'linux/amd64',
-            test: true
         ],
         [
             id: 'H:aarch64_none_linux_gnu T:arm_none_eabi',
@@ -29,15 +27,13 @@ def devtools =
             target: 'arm-none-eabi',
             params: '--target=arm-none-eabi --aprofile -- --host=aarch64-none-linux-gnu --release --package --enable-newlib-nano --enable-gdb-with-python=yes',
             cplatform: 'linux/arm64',
-            test: ''
         ],
         [
-            id: 'H:x86_64_none_linux_gnu T:aarch64_none_elf',
-            label: 'cen7 && ulsanvm',
-            params: '--target=aarch64-none-elf -- --host=x86_64-none-linux-gnu --disable-qemu --release --package --enable-gdb-with-python=yes',
-            test: true,
-            cplatform: ''
-
+            id: 'H:x86_64_none_linux_gnu T:arm_none_eabi',
+            label: 'rhe8 && x86_64 && docker',
+            target: 'arm-none-eabi',
+            params: '--target=arm-none-eabi --aprofile -- --host=x86_64-none-linux-gnu --release --package --enable-newlib-nano --enable-gdb-with-python=yes',
+            cplatform: 'linux/amd64'
         ],
         // MAC
         [
@@ -77,7 +73,6 @@ def devtools =
             target: 'aarch64-none-linux-gnu',
             params: '--target=aarch64-none-linux-gnu -- --host=aarch64-none-linux-gnu --config-flags-libc="--enable-crypt" --release --package --enable-gdb-with-python=yes',
             cplatform: 'linux/arm64',
-            test: ''
         ],
         [
             id: 'H:x86_64_none_linux_gnu T:aarch64_none_linux_gnu',
@@ -85,7 +80,6 @@ def devtools =
             target: 'aarch64-none-linux-gnu',
             params: '--target=aarch64-none-linux-gnu -- --host=x86_64-none-linux-gnu --config-flags-libc="--enable-crypt" --release --package --enable-gdb-with-python=yes',
             cplatform: 'linux/amd64',
-            test: ''
         ],
         [
             id: 'H:aarch64_none_linux_gnu T:arm_none_linux_gnueabihf',
@@ -93,7 +87,6 @@ def devtools =
             target: 'arm-none-linux-gnueabihf',
             params: '--target=arm-none-linux-gnueabihf -- --host=aarch64-none-linux-gnu --config-flags-libc="--enable-crypt" --release --package --enable-gdb-with-python=yes',
             cplatform: 'linux/arm64',
-            test: ''
         ],
         [
             id: 'H:x86_64_none_linux_gnu T:arm_none_linux_gnueabihf',
@@ -101,22 +94,10 @@ def devtools =
             target: 'arm-none-linux-gnueabihf',
             params: '--target=arm-none-linux-gnueabihf -- --host=x86_64-none-linux-gnu --config-flags-libc="--enable-crypt"  --release --package --enable-gdb-with-python=yes',
             cplatform: 'linux/amd64',
-            test: ''
         ]
     ]
 ]
 
-def testWithOban(jobSpecs) {
-    sh """
-    python3 extras/source-fetch.py checkout --srcdir src .oban
-    ln -s ./src/oban-scripts/build-me.sh build-me.sh
-    . ${BLD_PYTHON_ENV_PATH}/bin/activate
-    PATH=${WORKSPACE}/${GNU_TOOLS_PATH}:${BLD_PYTHON_ENV_PATH}/bin:${env.PATH}
-    ./build-me.sh ${jobSpecs.params} --dejagnu-site=site-internal-rm.exp check --builddir=$WORKSPACE/build
-    """
-    archiveArtifacts allowEmptyArchive: true, artifacts: "build/results/vanilla/*.log, build/results/vanilla/*.sum"
-
-}
 
 def doBuild(jobSpecs) {
     stage('Checkout') {
@@ -140,14 +121,6 @@ def doBuild(jobSpecs) {
         } catch (err) {
             echo "Caught a build error: ${err}"
             error("Build Failed: ${jobSpecs.id}")
-        }
-    }
-    stage('test') {
-        sshagent(credentials: ['dgboter-ssh']) {
-            if (jobSpecs.test) {
-                testWithOban(jobSpecs)
-
-            }
         }
     }
     stage('Out Of Box Testing') {
@@ -225,7 +198,7 @@ def buildDevtoolsMap(devtools) {
 }
 
 def selectBuildScriptTargets() {
-    buildScriptTargets = ["buildBaremetal"]
+    buildScriptTargets = []
     def scmVars = checkout scm
     def gitFilesDiff = sh(script: "git diff-tree --no-commit-id --name-only -r ${scmVars.GIT_COMMIT}", returnStdout: true).trim().split('\n')
     println "Changed files: ${gitFilesDiff}"
@@ -259,7 +232,6 @@ pipeline {
         def release = "13.2.Rel1"
         def GNU_TOOLS_PATH = "src/gnu-devtools-for-arm"  // Relative path to gnu-devtools in the workspace
         TOOLCHAIN_TARBALL_URL="https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/srcrel/arm-gnu-toolchain-src-snapshot-13.2.rel1.tar.xz"
-        BLD_PYTHON_ENV_PATH="/usr/local/bld-tools/bld-tools-virtual-env"
     }
     options {
         // This is required so that we first clean the workspace and then we do the scm checkout
