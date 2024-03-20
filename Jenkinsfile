@@ -190,8 +190,9 @@ def buildDevtoolsMap(devtools) {
     buildScriptTargets.each {
         buildScript ->
         def targets = devtools["${buildScript}"]
-        devtoolsBuildMap += targets.collectEntries {
-            ["${it}" : generateStage(it)]
+        targets.each {
+            jobSpecs ->
+            devtoolsBuildMap["${jobSpecs.id}"] = generateStage(jobSpecs)
         }
     }
     return devtoolsBuildMap
