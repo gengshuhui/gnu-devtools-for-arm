@@ -22,11 +22,11 @@
 
 The Arm GNU toolchain gets periodically released at [https://developer.arm.com/Tools%20and%20Software/GNU%20Toolchain](https://developer.arm.com/Tools%20and%20Software/GNU%20Toolchain)
 
-- gnu-devtools-for-arm is intended as a full package to reproduce our releases from source code and fully build-test-debug using Arm's [Fast Models](https://developer.arm.com/Tools%20and%20Software/Fast%20Models) or, in some cases, [QEMU](https://www.qemu.org/).
+- gnu-devtools-for-arm provides users access to build scripts that produce toolchains with similar configuration and build of the Arm GNU Toolchain releases. The scripts do not currently support certain features such as regression testing and binary signing.
 - The intended users of this package are:
-  - GNU Toolchain developers, who want to build and test the toolchain on models.
-  - Users of the Arm GNU Toolchain that wish to compile our releases from Source Code.
-- This package is a work-in-progress, it does not currently support all build-host-target variants or complete testing of those variants. It is the intention of the GNU team within Arm to further incrementally improve this package until all variants of the Arm GNU Toolchain are reproducible and testable.
+  - GNU Toolchain developers, who want to build and test the toolchain on models (testing not supported yet).
+  - Users of the Arm GNU Toolchain that wish to build toolchains similar to Arm GNU Toolchain releases, from Source Code.
+- This package is a work-in-progress, it does not currently support all build-host-target variants or complete testing of those variants.
 
 ## Package contents
 
@@ -45,13 +45,8 @@ gnu-devtools-for-arm
 ├── build-baremetal-toolchain.sh
 ├── build-cross-linux-toolchain.sh
 ├── build-gnu-toolchain.sh
-├── dejagnu
-│   └── <a set of dejagnu test configuration board files>
 ├── extras
-│   ├── models-run
 │   └── source-fetch.py
-├── fm-gdb-plugin
-    └── <a plugin to Fast Models that enabled target debugging with the toolchain GDB>
 └── utilities.sh
 ```
 
@@ -59,41 +54,38 @@ gnu-devtools-for-arm
 
 **What configurations are officially supported**
 
-The following table shows the list of combinations that work for:
-  - _Building_ the toolchain
-  - _Testing_ using FastModels (FM)
-  - _Testing_ using Qemu (QEMU)
-  - fm-gdb-plugin _Debugging_ enabled
+The following table shows the list of combinations that work for building the toolchain:
+
 
 ```
-| Toolchain [*]                                                                      | Building | Testing (FM) | Testing (QEMU) | fm-gdb-plugin debugging |
-| ---------------------------------------------------------------------------------- | -------- | -------------| -------------- | ----------------------- |
-| Build                   | Host                    | Target                         |          |              |                |                         |
-| ---------------------------------------------------------------------------------- | -------- | ------------ | -------------- | ----------------------- |
-| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | aarch64-none-elf               |    x     |              |       x        |                         |
-| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | MORELLO aarch64-none-elf       |    x     |              |                |                         |
-| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | MORELLO aarch64-none-linux-gnu |    x     |              |                |                         |
-| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | arm-none-eabi                  |    x     |              |       x        |                         |
-| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | arm-none-linux-gnueabihf       |    x     |              |       x        |                         |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64-none-elf               |    x     |      x       |       x        |            x            |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | MORELLO aarch64-none-elf       |    x     |      x       |                |            x            |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | MORELLO aarch64-none-linux-gnu |    x     |              |                |                         |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64-none-linux-gnu         |    x     |              |       x        |                         |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64_be-none-linux-gnu      |    x     |              |       x        |                         |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | arm-none-eabi                  |    x     |      x       |       x        |            x            |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | arm-none-linux-gnueabihf       |    x     |              |       x        |                         |
-| macOS (x86_64)          | macOS (x86_64)          | aarch64-none-elf               |    x     |              |                |                         |
-| macOS (x86_64)          | macOS (x86_64)          | arm-none-eabi                  |    x     |              |                |                         |
-| macOS (Apple silicon)   | macOS (Apple silicon)   | aarch64-none-elf               |    x     |              |                |                         |
-| macOS (Apple silicon)   | macOS (Apple silicon)   | arm-none-eabi                  |    x     |              |                |                         |
-| x86_64-none-linux-gnu   | Windows (mingw, x86)    | aarch64-none-elf               |           Not currently supported through these scripts            |
-| x86_64-none-linux-gnu   | Windows (mingw, x86)    | arm-none-eabi                  |           Not currently supported through these scripts            |
-| x86_64-none-linux-gnu   | Windows (mingw, x86)    | arm-none-linux-gnueabihf       |           Not currently supported through these scripts            |
-| x86_64-none-linux-gnu   | Windows (mingw, x86)    | aarch64-none-linux-gnu         |           Not currently supported through these scripts            |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Toolchain [*]                                                                      |    Building   |
+| ---------------------------------------------------------------------------------- | ------------- |
+| Build                   | Host                    | Target                         |               |
+| ---------------------------------------------------------------------------------- | --------------|
+| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | aarch64-none-elf               |       x       |
+| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | MORELLO aarch64-none-elf       |       x       |
+| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | MORELLO aarch64-none-linux-gnu |       x       |
+| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | arm-none-eabi                  |       x       |
+| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | arm-none-linux-gnueabihf       |       x       |
+| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64-none-elf               |       x       |
+| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | MORELLO aarch64-none-elf       |       x       |
+| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | MORELLO aarch64-none-linux-gnu |       x       |
+| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64-none-linux-gnu         |       x       |
+| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64_be-none-linux-gnu      |       x       |
+| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | arm-none-eabi                  |       x       |
+| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | arm-none-linux-gnueabihf       |       x       |
+| macOS (x86_64)          | macOS (x86_64)          | aarch64-none-elf               |       x       |
+| macOS (x86_64)          | macOS (x86_64)          | arm-none-eabi                  |       x       |
+| macOS (Apple silicon)   | macOS (Apple silicon)   | aarch64-none-elf               |       x       |
+| macOS (Apple silicon)   | macOS (Apple silicon)   | arm-none-eabi                  |       x       |
+| x86_64-none-linux-gnu   | Windows (mingw, x86)    | aarch64-none-elf               | Not supported |
+| x86_64-none-linux-gnu   | Windows (mingw, x86)    | arm-none-eabi                  | Not supported |
+| x86_64-none-linux-gnu   | Windows (mingw, x86)    | arm-none-linux-gnueabihf       | Not supported |
+| x86_64-none-linux-gnu   | Windows (mingw, x86)    | aarch64-none-linux-gnu         | Not supported |
+| ---------------------------------------------------------------------------------- |---------------|
 ```
 
-[*] This list of toolchains is the full list of currently released Arm GNU Toolchain variants. Other build-host-target combinations are not _officially_ supported by these scripts (they may work out of coincidence, but we do not run them regularly, so they may not work out of the box. Contributions welcome!).
+[*] This list of toolchains is the full list of currently released Arm GNU Toolchain variants. Other build-host-target combinations are not supported by these scripts (Contributions welcome!).
 
 
 ## How to build the toolchains
@@ -104,15 +96,15 @@ To build the toolchain, please follow the following process:
 
 #### Install prerequisite packages
 
-The release toolchains for arm are built in relatively old OS environments, like CentOS7 or Ubuntu 18.04. This is particularly important as to ensure the highest backward compatibility with old glibc versions.
-These scripts, if used to build the toolchain on a recent OS builder, will only work on the same (or a newer) system.
+The GNU Toolchain binaries that are released by Arm are built in relatively old OS environments, like CentOS7 or Ubuntu 18.04. This is particularly important as to ensure the highest backward compatibility with old glibc versions.
+The toolchain binaries produced by these scripts will only work on the same (or newer) OS version on which the scripts are run.
 
 A number of packages are needed to build the toolchain. If source-fetch.py is being used to clone upstream repositories or Python-enabled GDB is needed, a python3 environment will be required.
 
 
 ##### For Ubuntu Linux distros
 
-Here is an over-exhaustive list:
+Here is a list of packages that might be required:
 
 ```
 sudo apt-get update
@@ -227,7 +219,7 @@ The content needs to be placed into the ./src folder, such that the ./src folder
   └───<etc>
 ```
 
-Note 1: This Source Code package does not contain the source code for QEMU, since QEMU does not form part of the Arm GNU Toolchain release. If tests using QEMU are required, the QEMU source code needs to be fetched and placed in `./src/qemu` (e.g. `git clone https://gitlab.com/qemu-project/qemu.git ./src/qemu`)
+Note 1: This Source Code package does not contain the source code for QEMU, because QEMU does not form part of the Arm GNU Toolchain release. If tests using QEMU are required, the QEMU source code needs to be fetched and placed in `./src/qemu` (e.g. `git clone https://gitlab.com/qemu-project/qemu.git ./src/qemu`)
 
 Note 2: The build scripts contain legacy code for supporting minor components cloog and libffi. This is not currently used by our standard build processes, hence why they have not been documented in these instructions.
 
@@ -247,7 +239,7 @@ cd ../..
 If the full history of the respective git repositories is not needed, it is possible to use --shallow for faster and more compact downloads.
 
 
-Some minor tools are not listed in the spec file and are required:
+Some libraries are not listed in the spec file and are required:
 
 
 ```
@@ -276,11 +268,11 @@ Note 1: This may result in a slightly different revision than those used in Arm'
 
 Note 2: The advantage of this method is that whole git repositories of the relevant projects are fetched. This allows to make custom changes or apply patches to the code to rebuild, but it is much slower.
 
-Note 3: The source snapshot manifest SPEC file does not code the source code for QEMU, since QEMU does not form part of the Arm GNU Toolchain release. If the toolchain needs to be tested using QEMU, the QEMU source code needs to be fetched separately and placed in `./src/qemu` (e.g. `git clone https://gitlab.com/qemu-project/qemu.git ./src/qemu` )
+Note 3: The source snapshot manifest SPEC file does not contain the source code for QEMU, because QEMU does not form part of the Arm GNU Toolchain release. If the toolchain needs to be tested using QEMU, the QEMU source code needs to be fetched separately and placed in `./src/qemu` (e.g. `git clone https://gitlab.com/qemu-project/qemu.git ./src/qemu` )
 
 Note 4: The build scripts contain legacy code for supporting minor components cloog and libffi. This is not currently used by our standard build processes, hence why they have not been documented in these instructions.
 
-After completion of one of the above steps, the full ./src folder should now contain at least the below components (all these manes also support a `-<version_number>` suffix:
+After completion of one of the above steps, the full ./src folder should now contain at least the below components (all these names also support a `-<version_number>` suffix:
 
 ```
 ./src
@@ -308,7 +300,7 @@ The build scripts can be invoked either directly through the generic wrapper scr
 First, add the `gnu-devtools-for-arm` folder to your PATH environment variable:
 ```
 export PATH="$PWD/src/gnu-devtools-for-arm:$PATH"
-build-gnu-toolchain.sh --target=<target> ... start
+build-gnu-toolchain.sh --target=<target> start
 ```
 
 ##### Building a toolchain in debug mode for development
@@ -326,13 +318,11 @@ Where `TARGET` can be any of:
 - `aarch64-none-elf`
 - `aarch64_be-none-elf`
 - `arm-none-eabi`
-- `armeb-none-eabi`
 - `arm-none-linux-gnueabihf`
-- `armeb-none-linux-gnueabihf`
 - `aarch64-none-linux-gnu`
 - `aarch64_be-none-linux-gnu`
 
-Please refer to the lookup table below, which provides information of the valid target to use for each `build/host` platform.
+Please refer to the table below, which provides information of the valid target to use for each `build/host` platform.
 
 
 ```
@@ -342,25 +332,17 @@ Please refer to the lookup table below, which provides information of the valid 
 | aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | aarch64-none-elf          |
 | aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | aarch64_be-none-elf       |
 | aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | arm-none-eabi             |
-| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | armeb-none-eabi           |
 | aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | arm-none-linux-gnueabihf  |
-| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | armeb-none-linux-gnueabihf|
 | x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64-none-elf          |
 | x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64_be-none-elf       |
 | x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64-none-linux-gnu    |
 | x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64_be-none-linux-gnu |
 | x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | arm-none-eabi             |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | armeb-none-eabi           |
 | x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | arm-none-linux-gnueabihf  |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | armeb-none-linux-gnueabihf|
 | macOS (x86_64)          | macOS (x86_64)          | aarch64-none-elf          |
-| macOS (x86_64)          | macOS (x86_64)          | aarch64_be-none-elf       |
 | macOS (x86_64)          | macOS (x86_64)          | arm-none-eabi             |
-| macOS (x86_64)          | macOS (x86_64)          | armeb-none-eabi           |
 | macOS (Apple silicon)   | macOS (Apple silicon)   | aarch64-none-elf          |
-| macOS (Apple silicon)   | macOS (Apple silicon)   | aarch64_be-none-elf       |
 | macOS (Apple silicon)   | macOS (Apple silicon)   | arm-none-eabi             |
-| macOS (Apple silicon)   | macOS (Apple silicon)   | armeb-none-eabi           |
 | ----------------------------------------------------------------------------- |
 ```
 
@@ -380,18 +362,18 @@ For more complex toolchains, the simple interface of the `build-gnu-toolchain.sh
 - `build-cross-linux-toolchain.sh`
 
 This can be done by adding "`--`" to separate the `build-gnu-toolchain.sh` command line options from the `build-baremetal-toolchain.sh` or `build-cross-linux-toolchain.sh` command line options.
-One useful skill, especially for `arm-none-eabi` toolchains, which normally take hours to build due to the number of "mutlilibs" needed, is to know how to build a toolchain only with one multilib: this minimises the build time for quick iteration during development.
+It is possible to build a toolchain only with one multilib in order to minimise the build time for quick iterations during development. This is especially useful for `arm-none-eabi` toolchains, which normally take hours to build due to the number of "mutlilibs" needed.
 ```
 # Run this at least once to completion:
-build-gnu-toolchain.sh --target=arm-eabi --with-arch=armv8.1-m.main+mve.fp+fp.dp --disable-multilib -- --config-flags-gcc=--with-float=hard start
+build-gnu-toolchain.sh --target=arm-none-eabi --with-arch=armv8.1-m.main+mve.fp+fp.dp --disable-multilib -- --config-flags-gcc=--with-float=hard start
 # Run this to recompile changes in `gcc2` for quick and easy iteration:
-build-gnu-toolchain.sh --target=arm-eabi --with-arch=armv8.1-m.main+mve.fp+fp.dp --disable-multilib -- --config-flags-gcc=--with-float=hard gcc2
+build-gnu-toolchain.sh --target=arm-none-eabi --with-arch=armv8.1-m.main+mve.fp+fp.dp --disable-multilib -- --config-flags-gcc=--with-float=hard gcc2
 ```
 
 ##### Building a toolchain in release mode
 
 Running the scripts in release mode also requires that some parameters from the lower-level scripts `build-baremetal-toolchain.sh` and `build-cross-linux-toolchain.sh` to be used.
-The following are sample invokations as used to build our binary releases:
+The following are sample invocations as used to build our binary releases:
 ```
 | Toolchain                                                                     |
 | ----------------------------------------------------------------------------- |
@@ -414,14 +396,14 @@ The following are sample invokations as used to build our binary releases:
 **Notes:**
 * The aarch64-none-elf baremetal toolchains are built with both lp64 and ilp32 multilibs.
 * The arm-none-eabi baremetal toolchain with both A-profile and RM-profile multilibs. After building, use `./build-arm-none-eabi/install/bin/arm-none-eabi-gcc --print-multi-lib` to view the whole list.
-* Inconsistency may be noticed around the `--enable-gdb-with-python=yes` command line option. GDB with Python support is a known and unresolved inconsistency of the current toolchain-building process. Python scripting support in GDB makes it less out-of-the-box portable between OS versions, but it is a functionality that many people are increasingly relying on. Currently, we enable `gdb-with-python` for Linux-hosted toolchains, but keep it disabled for MacOS and Windows-hosted toolchains.
+* Inconsistency may be noticed around the `--enable-gdb-with-python=yes` command line option. GDB with Python support is a known inconsistency of the current toolchain-building process. Python scripting support in GDB makes it less portable between OS versions. Currently, we enable `gdb-with-python` for Linux-hosted toolchains, but keep it disabled for macOS and Windows-hosted toolchains.
 * At Arm, we use the `--tag` and `--bugurl` options to the lower-level scripts to tag our releases.
 
-**It is important that the same tags used by Arm are not used when building the toolchain. Usage of a different branding needs to be specified in case `--tags` is needed.**
+**It is important that the same tags used by Arm are not used when building the toolchain. Usage of a different branding needs to be specified in case `--tag` is needed.**
 
 ### Known build issues
 
-When using glibc v2.38 with gcc-13 or earlier gcc versions, the build process fails:
+* When building gcc-13 or earlier gcc versions, together with glibc v2.38, the build process fails:
 
 ```
 src/gcc/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cpp:180:10: fatal error: crypt.h: No such file or directory
@@ -438,14 +420,12 @@ or
 --extra="--config-flags-libc=--enable-crypt" # to build-gnu-toolchain.sh
 ```
 
-## How to test the toolchains (Not supported yet)
+* Building certain parts of the toolchain source code might require support for a newer C or C++ language standard. It is recommended to build the toolchain using GCC 9 or later, to avoid such build errors.
 
-> Arm release toolchains are checked for quality by running the test suite for each tool as detailed below. At this time, the scripts don't implement the testing process yet, it will be introduced soon in a future release.
 
-Tests can be executed for all the above `--target` options (aarch64-none-elf, aarch64-none-linux-gnu, arm-none-eabi, etc.) across different configurations.
-All these toolchains are currently cross-compiler toolchains, so they require a model or simulator for the target CPU and environment. Supported models are:
-* Arm's various Fast Models products: Some models may require a licence from Arm.
-* QEMU: We compile QEMU from source in these scripts, so it should work on x86_64 and Arm 32-bit and 64-bit Linux hosts.
+## How to test the toolchains
+
+These scripts do not currently support running the regression testsuite.
 
 # Licence
 This project is licensed under the terms of the MIT license.
