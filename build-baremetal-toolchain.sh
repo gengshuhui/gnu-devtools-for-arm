@@ -11,7 +11,7 @@ execdir=`dirname $0`
 execdir=`cd $execdir; pwd`
 default_target=aarch64-none-elf
 all_args="$*"
-this_script="build-elf.sh"
+this_script="build-baremetal-toolchain.sh"
 script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 if [ ! -f "$script_dir/utilities.sh" ]; then
   echo "error:Could not find helper script at $script_dir/utilities.sh"
@@ -1041,7 +1041,7 @@ while true; do
   # This is a dummy stage that will only perform an install of an already-built
   # Newlib.  This is needed for the current split-build of the mingw-hosted
   # toolchains only and it is invoked explicitly as a single-stage run of
-  # "build-elf.sh <options> install-newlib".  When we update the higher-level
+  # "build-baremetal-toolchain.sh <options> install-newlib".  When we update the higher-level
   # scripts to no longer require this explicit install invocation, this stage
   # can be removed.
   install-newlib)

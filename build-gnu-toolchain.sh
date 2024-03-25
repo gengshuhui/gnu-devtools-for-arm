@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# build-me.sh
+# build-gnu-toolchain.sh
 #
-# This script is a top level driver for the build-baremetal-toolchain.sh and
-# build-cross-linux-toolchain.sh build scripts.
+# This script is a top level driver for the build-baremetal-toolchain.sh,
+# build-cross-linux-toolchain.sh and build-native-toolchain.sh build scripts.
 #
 
 set -e
@@ -46,10 +46,10 @@ done
 usage()
 {
 cat <<EOF
-Usage: build-me.sh [OPTIONs]
+Usage: build-gnu-toolchain.sh [OPTIONs]
 
 This script is a top level driver for the:
-* bld-native.sh
+* build-native-toolchain.sh
 * build-baremetal-toolchain.sh and
 * build-cross-linux-toolchain.sh build scripts.
 
@@ -126,34 +126,34 @@ This script is a top level driver for the:
 
   FILESYSTEM LAYOUT:
   <buildroot>/
+    build-gnu-toolchain.sh
     src
       <all toolchain components>
       gnu-devtools-for-arm/
-    build-me.sh->./src/gnu-devtools-for-arm/build-me.sh
     build-<target>/
 
   To build (or rebuild) everything:
-  $ ./build-me.sh
+  $ build-gnu-toolchain.sh
 
   To build to a specific output directory:
-  $ ./build-me.sh --builddir=some/output/dir
+  $ build-gnu-toolchain.sh --builddir=some/output/dir
 
   To build (or rebuild) just one target use this form:
-  $ ./build-me.sh --target=aarch64-none-linux-gnu
+  $ build-gnu-toolchain.sh --target=aarch64-none-linux-gnu
 
   To build (or rebuild) just one target from a specific stage use this form:
-  $ ./build-me.sh --target=aarch64-none-linux-gnu gcc-3
+  $ build-gnu-toolchain.sh --target=aarch64-none-linux-gnu gcc-3
 
   Use the last flavour to run the test suites:
-  $ ./build-me.sh --target=aarch64-none-linux-gnu check
+  $ build-gnu-toolchain.sh --target=aarch64-none-linux-gnu check
 
   Building different variations of GDB:
 
-  $ ./build-me.sh '--extra=--enable-gdb-with-python=yes' --target=aarch64-elf gdb
+  $ build-gnu-toolchain.sh '--extra=--enable-gdb-with-python=yes' --target=aarch64-elf gdb
 
   Also all components of binutils can be tested with one command
 
-  $ ./build-me.sh  --target=aarch64-none-linux-gnu check-binutils-all
+  $ build-gnu-toolchain.sh  --target=aarch64-none-linux-gnu check-binutils-all
 
   Building toolchains with debug information
 
@@ -161,20 +161,20 @@ This script is a top level driver for the:
 
   To build toolchain with CFLAGS="-O0 -g3" given target do:
 
-  $ ./build-me.sh --debug --target=aarch64-none-linux-gnu
+  $ build-gnu-toolchain.sh --debug --target=aarch64-none-linux-gnu
 
   To build target libraries with CFLAGS="-O0 -g3" given target do:
 
-  $ ./build-me.sh --debug-target --target=aarch64-none-linux-gnu
+  $ build-gnu-toolchain.sh --debug-target --target=aarch64-none-linux-gnu
 
   These options can be used together for maximum debug-ability:
 
-  $ ./build-me.sh --debug --debug-target --target=aarch64-none-linux-gnu
+  $ build-gnu-toolchain.sh --debug --debug-target --target=aarch64-none-linux-gnu
 
   To build a single-multilib toolchain,
 
   Or even:
-  $ ./build-me.sh check
+  $ build-gnu-toolchain.sh check
 
 EOF
 }
@@ -182,7 +182,7 @@ EOF
 set_darwin_envvars
 
 # Parse command-line options
-args=$(getopt -ohj:l:x -l aprofile,check-gdb,no-check-gdb,debug,debug-target,dejagnu-site:,dejagnu-src:,disable-gdb,disable-multilib,morello,extra:,native,rmprofile,target:,with-arch:,builddir:,host-toolchain:,target-board: -n $(basename "$0") -- "$@")
+args=$(getopt -ohj:l:x -l aprofile,check-gdb,no-check-gdb,debug,debug-target,dejagnu-site:,dejagnu-src:,disable-gdb,disable-multilib,morello,extra:,native,rmprofile,help,target:,with-arch:,builddir:,host-toolchain:,target-board: -n $(basename "$0") -- "$@")
 eval set -- "$args"
 while [ $# -gt 0 ]; do
   if [ -n "${opt_prev:-}" ]; then
@@ -384,7 +384,9 @@ do
       script="build-cross-linux-toolchain.sh"
       extraflags="$extraflags ${maybe_fortran} --disable-multiarch"
     else
-      script="bld-native.sh"
+      script="build-native-toolchain.sh"
+      printf "error: Native builds not yet implemented" >&2
+      exit 1
       # Host toolchain > GCC 4.8 is required for native builds
       if [ -n "${HOST_TOOLCHAIN_ROOT:-}" ]; then
         host_toolchain_path="${host_toolchain_path:-$HOST_TOOLCHAIN_ROOT/$target/bin}"

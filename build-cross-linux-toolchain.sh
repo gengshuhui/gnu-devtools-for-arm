@@ -11,7 +11,7 @@ execdir=`dirname $0`
 execdir=`cd $execdir; pwd`
 default_target=aarch64-none-linux-gnu
 all_args="$*"
-this_script="build-eglibc.sh"
+this_script="build-cross-linux-toolchain.sh"
 script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 if [ ! -f "$script_dir/utilities.sh" ]; then
   echo "error:Could not find helper script at $script_dir/utilities.sh"
