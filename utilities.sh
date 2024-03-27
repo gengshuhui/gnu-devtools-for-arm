@@ -75,15 +75,10 @@ strip_lib()
     local TARGET_OBJECTS=$(find $dir -name \*.o | grep -v .dll)
     local TARGET_LIBRARIES=$(find $dir -name \*.a | grep -v .dll)
 
-    # We are removing the sections that were removed in the previous gnu-rm embedded releases:
-    # See https://eu-gerrit-1.euhpc.arm.com/plugins/gitiles/dsg-gnu/infrastructure/pdsh-scripts/+/refs/heads/master/separated-daily-build/10/build-toolchain.sh for what those sections are:
-    #     -R .comment -R .note -R .debug_info -R .debug_aranges -R .debug_pubnames -R .debug_pubtypes -R .debug_abbrev -R .debug_line -R .debug_str -R .debug_ranges -R .debug_loc
-    # Although, with a few changes made here as required by comments in https://dwarfstd.org/Dwarf5Std.php:
-    #     .debug_ranges is replaced by .debug_rnglists
-    #     .debug_loc is replaced by .debug_loclists
-    # It is not clear whether that includes everything that "strip -g" would do.
-    #     .debug_frame is something we definitely want to keep and not removed.
-
+    # We are omitting the sections that were previously removed in the embedded releases of GNU-RM.
+    # Manually use objcopy to remove a number of debug sections to trim down the binary size. 
+    # This is similar to the use of `strip -g`, but does not remove the `.debug_frame` section, which is needed for minimal stack unwinding through the library.
+    
     for target_lib in $TARGET_LIBRARIES ; do
       $strip_command -R .comment -R .note -R .debug_info -R .debug_aranges -R .debug_pubnames -R .debug_pubtypes -R .debug_abbrev -R .debug_line -R .debug_str -R .debug_ranges -R .debug_loc -R .debug_rnglists -R .debug_loclists $target_lib || true
     done
