@@ -39,4 +39,4 @@ set aarch64_binutils_dummy_list  [ list "aarch64-elf-qemu{-mcpu=cortex-a53}" ]
 set aarch64_gdb_dummy_list [list "aarch64-elf-qemu{-mcpu=cortex-a53}"]
 
 source "[ file dirname [ file normalize [ info script ] ] ]/site.exp"
-set target_list [get_target_list_per_targ_triplet $target_triplet $standard_arm_eabi_target_list $standard_arm_lnx_target_list $arm_binutils_dummy_list $arm_gdb_dummy_list $aarch64_binutils_dummy_list $aarch64_gdb_dummy_list]
+set target_list [get_target_list_per_targ_triplet $target_triplet $standard_arm_eabi_target_list $standard_arm_lnx_target_list $arm_binutils_dummy_list $arm_gdb_dummy_list $standard_aarch64_elf_target_list $standard_aarch64_lnx_target_list $aarch64_binutils_dummy_list $aarch64_gdb_dummy_list]

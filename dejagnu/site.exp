@@ -2,7 +2,7 @@
 # site.exp -- Site-specific configuration file for A/R/M toolchain builds of
 #	      GNU Tools.
 
-proc get_target_list_per_targ_triplet {target_triplet standard_arm_eabi_target_list standard_arm_lnx_target_list arm_binutils_dummy_list arm_gdb_dummy_list aarch64_binutils_dummy_list aarch64_gdb_dummy_list} {
+proc get_target_list_per_targ_triplet {target_triplet standard_arm_eabi_target_list standard_arm_lnx_target_list arm_binutils_dummy_list arm_gdb_dummy_list standard_aarch64_elf_target_list standard_aarch64_lnx_target_list aarch64_binutils_dummy_list aarch64_gdb_dummy_list} {
   case "$target_triplet" in {
     { "arm*-*-eabi*" "arm*-*-elf*" } {
       if [ info exists tool ] {

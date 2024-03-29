@@ -863,6 +863,11 @@ while true; do
 
     binutils_cflags="$cflags"
     binutils_cxxflags="$cflags"
+    # binutils gold requires C++11. Add -std=gnu++11 as a temporary workaround to build binutils gold if GCC major version is less than 6.
+    gcc_major_ver=$( gcc -dumpfullversion -dumpversion | awk -F. '{print $1}' )
+    if [ $gcc_major_ver -lt 6 ]; then
+        binutils_cxxflags="$binutils_cxxflags -std=gnu++11"
+    fi
     binutils_config="--enable-64-bit-bfd \
        --enable-targets=$enable_binutils_targets \
        --target=$target \
@@ -886,7 +891,7 @@ while true; do
        ${extra_config_flags_binutils:-}"
 
     binutils_build_targets="all-binutils all-gas all-gprof all-ld all-gold"
-    binutils_install_targets="install-binutils install-gas install-ld install-gold install-gprof install-html-binutils install-html-gas install-html-ld install-html-gprof"
+    binutils_install_targets="install-binutils install-gas install-ld install-gold install-gprof"
     binutils_destdir=${installdir}
     do_config_build_install binutils
     ;;
@@ -1327,7 +1332,6 @@ EOF
   libffi)
   if [ -d "$srcdir/libffi" ];
   then
-    hostcloog="$host_tools_install"
     if [ -n "${libffi_src:-}" -a -d "${libffi_src:-}" ]; then
       libffi_destdir="$build_sysroot"
       libffi_config="--host=$target --target=$target --prefix=$target_prefix \
@@ -1375,10 +1379,10 @@ EOF
     ;;
 
   check-binutils | check-gas | check-ld | check-gold | check-gdb)
-    objdir="$objdir/binutils"
+    objdir_local="$objdir/binutils"
     flag_check=1
     if [ "$stage" == check-gdb ]; then
-      objdir="$objdir/gdb"
+      objdir_local="$objdir/gdb"
       if [ $flag_check_gdb -eq 0 ]; then
         flag_check=0
       fi
@@ -1389,14 +1393,14 @@ EOF
       ( ulimit -S -t 120 &&
         RUNTESTFLAGS="$RUNTESTFLAGS" \
         DESTDIR=${installdir} \
-        make -C $objdir -k $parallel $stage \
+        make -C $objdir_local -k $parallel $stage \
         CC_FOR_TARGET="${installdir}/${host_prefix}/bin/$target-gcc" ) \
       || true
 
       # Capture the results
       mkdir -p "$resultdir"
       name=`echo "$stage" | sed "s/check-target-//" | sed "s/check-//"`
-      for f in `find "$objdir" -name "$name.log" -o -name "$name.sum" -o -name "$name.xml"`
+      for f in `find "$objdir_local" -name "$name.log" -o -name "$name.sum" -o -name "$name.xml"`
       do
         cp "$f" "$resultdir"
       done
@@ -1409,7 +1413,6 @@ EOF
     ;;
 
   check-target-*)
-    objdir="$objdir/gcc4"
 
     name=`echo "$stage" | sed "s/check-target-//" | sed "s/check-//"`
     # libstdc++-v3 is awkward, the check target and resulting output files use
@@ -1426,11 +1429,11 @@ EOF
   if [ -d "$srcdir/libffi" ];
   then
     RUNTESTFLAGS="$RUNTESTFLAGS CC_FOR_TARGET=$target-gcc" \
-    make -C "$libffi_objdir" PARALLELMFLAGS=$parallel -k check || true
+    make -C "$objdir/libffi" PARALLELMFLAGS=$parallel -k check || true
     # Capture the results
     mkdir -p "$resultdir"
     name=libffi
-    for f in `find "$libffi_objdir" -name "$name.log" -o -name "$name.sum" -o -name "$name.xml"`
+    for f in `find "$objdir/libffi" -name "$name.log" -o -name "$name.sum" -o -name "$name.xml"`
     do
       cp "$f" "$resultdir"
     done

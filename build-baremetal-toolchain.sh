@@ -553,6 +553,8 @@ newlib_config_flags="$newlib_config_flags --enable-newlib-io-long-long"
 newlib_config_flags="$newlib_config_flags --enable-newlib-io-c99-formats"
 # Enable finalization function registration using atexit
 newlib_config_flags="$newlib_config_flags --enable-newlib-register-fini"
+# Multibyte support for JIS, SJIS, and EUC-JP implemented.
+newlib_config_flags="$newlib_config_flags --enable-newlib-mb"
 
 newlib_nano_config_flags="$newlib_config_flags_common"
 # Nano build uses the dedicated, small footprint malloc implementation.
@@ -869,20 +871,15 @@ while true; do
 			  ${extra_config_flags_host_tools:-} \
 			  ${extra_config_flags_binutils:-}"
 
-      # FIXME: make this work on Darwin.
-      if [ $host_is_darwin -eq 0 ]; then
-	binutils_build_targets="all-binutils all-gas all-gprof all-ld"
-	binutils_install_targets="install-binutils install-gas install-ld install-gprof install-html-binutils install-html-gas install-html-ld install-html-gprof"
-      else
-	binutils_build_targets="all-binutils all-gas all-gprof all-ld"
-	binutils_install_targets="install-binutils install-gas install-ld install-gprof"
-      fi
+      binutils_build_targets="all-binutils all-gas all-gprof all-ld"
+      binutils_install_targets="install-binutils install-gas install-ld install-gprof"
       binutils_destdir=${installdir}
       do_config_build_install binutils
       # After building: Also install to nano_installdir, if building a nano toolchain
       if [ $flag_enable_mingw -eq 0 ]; then
 	if [ $flag_enable_newlib_nano -eq 1 ]; then
 	  binutils_destdir=${nano_installdir}
+	  binutils_install_targets="install-binutils install-gas install-ld install-gprof"
 	  do_install binutils
 	fi
       fi
@@ -924,10 +921,6 @@ while true; do
     gdb_install_targets="install-gdb install-html-gdb"
     gdb_destdir="${installdir}"
 
-    if [ $host_is_darwin -eq 0 ]; then
-      # FIXME: Disable other features that were disabled in the macOS builds of the GNU-RM Embedded infrastructure.
-      gdb_config_flags="${gdb_config_flags:-} --without-libunwind-ia64 --without-lzma --without-babeltrace --without-intel-pt --without-xxhash  --without-debuginfod --without-guile --disable-source-highlight --disable-objc-gc"
-    fi
     gdb_config_flags="${gdb_config_flags:-} --with-python=${gdb_with_python:-no}"
 
     # GDB now requires mpfr [1] and prefix is required when using --with-gmp and --with-mpfr options.
@@ -1031,7 +1024,7 @@ while true; do
       newlib_cflags_for_target="${cflags_for_target:-} ${extra_newlib_cflags:-}"
       newlib_cxxflags_for_target="${cxxflags_for_target:-} ${extra_newlib_cflags:-}"
       newlib_ldflags_for_target="${ldflags_for_target:-}"
-      newlib_config_envflags="CC_FOR_TARGET=$gccbin/xgcc -B$gccbin/"
+      newlib_extra_config_envflags="CC_FOR_TARGET=\"$gccbin/xgcc -B$gccbin/\""
       newlib_build_targets="all-target-newlib all-target-libgloss"
       newlib_install_targets="install-target-newlib install-target-libgloss"
       do_config_build_install newlib
@@ -1068,7 +1061,7 @@ while true; do
       newlib_nano_cflags_for_target="${cflags_for_nano_target:-}"
       newlib_nano_cxxflags_for_target="${cxxflags_for_nano_target:-}"
       newlib_nano_ldflags_for_target="${ldflags_for_nano_target:-}"
-      newlib_nano_config_envflags="CC_FOR_TARGET=$gccbin/xgcc -B$gccbin/"
+      newlib_nano_extra_config_envflags="CC_FOR_TARGET=\"$gccbin/xgcc -B$gccbin/\""
       newlib_nano_build_targets="all-target-newlib all-target-libgloss"
       newlib_nano_install_targets="install-target-newlib install-target-libgloss"
       do_config_build_install newlib_nano
