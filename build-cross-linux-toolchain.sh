@@ -686,10 +686,6 @@ fi
 AARCH64SYSROOT="$build_sysroot"
 export AARCH64SYSROOT
 
-mkdir -p ${build_sysroot}
-mkdir -p ${installdir}/${host_prefix}/bin
-mkdir -p ${qemu_installdir}/${host_prefix}/bin
-
 if empty_stages_p; then
   if [ -r ,stage ]; then
     # Continue from last failing stage
@@ -773,6 +769,7 @@ while true; do
     ;;
 
   start)
+    mk_bin_dirs $host_prefix $build_sysroot
     write_build_status > build.status
     push_stages gmp mpfr mpc isl cloog iconv qemu binutils-chain gdb perms
     ;;

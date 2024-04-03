@@ -1,3 +1,18 @@
+# Create the installation directories for binaries
+# If sysroot path is passed as second argument the dir build_sysroot is also created
+# mk_bin_dirs "prefix" <"/sysroot/path">
+mk_bin_dirs()
+{
+    local prefix=$1
+
+    mkdir -p ${installdir}${prefix}/bin
+    mkdir -p ${qemu_installdir}/${prefix}/bin
+
+    if [[ $# > 1 ]]; then
+        mkdir -p ${2}
+    fi
+}
+
 write_build_status()
 {
 cat <<EOF

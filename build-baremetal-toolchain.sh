@@ -669,9 +669,6 @@ if [ -d "$srcdir/binutils-gdb--gdb" ]; then
   gdb_src="$srcdir/binutils-gdb--gdb"
 fi
 
-mkdir -p ${installdir}${prefix}/bin
-mkdir -p ${qemu_installdir}/${prefix}/bin
-
 hostgmp="$host_tools_install"
 hosticonv="$host_tools_install"
 hostmpfr="$host_tools_install"
@@ -751,10 +748,12 @@ while true; do
     ;;
 
   start-bootstrap-newlib)
+    mk_bin_dirs $prefix
     push_stages gmp mpfr mpc isl cloog iconv binutils gdb gcc1 newlib newlib-nano gcc2 gcc2-nano
     ;;
 
   start)
+    mk_bin_dirs $prefix
     write_build_status > build.status
 
     push_stages gmp mpfr mpc isl cloog qemu iconv binutils gdb gcc1 newlib newlib-nano gcc2 gcc2-nano perms
