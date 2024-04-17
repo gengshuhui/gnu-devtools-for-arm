@@ -407,14 +407,13 @@ class GitIface(object):
         if child.wait() != 0:
             raise GitException(self.url, comms[1].decode())
 
-    def fetch(self, args, remote=None, quiet=False, version=None):
-
+    def fetch(self, shallow=False, remote=None, quiet=False, version=None):
         command = ["git", "fetch"]
         if quiet:
             command.append("-q")
         if remote is not None:
             command.append(remote)
-        if args.shallow:
+        if shallow:
             command.append("--depth=1")
             command.append("origin")
             command.append(version)
@@ -634,7 +633,7 @@ class SpcItemTarball(SpcItem):
         path = os.path.join(output_dir, self._name + ".tar")
         archive(self._url, path, ".", seriesurl=self._series)
 
-    def checkout(self, srcdir, cache_path=None):
+    def checkout(self, srcdir, shallow=False, cache_path=None):
         path = os.path.join(srcdir, self._name)
         tarball_acquire_explode_patch(self._url, path, ".", seriesurl=self._series)
 
@@ -673,8 +672,8 @@ class SpcItemGitVersion(SpcItem):
         fname = os.path.join(output_dir, self._name + ".tar")
         repo.archive(self._version, self._name, fname)
 
-    def checkout(self, args, cache_path=None):
-        path = os.path.join(args.srcdir, self._name)
+    def checkout(self, srcdir, shallow=False, cache_path=None):
+        path = os.path.join(srcdir, self._name)
         if not os.path.exists(path):
             if cache_path:
                 cache_path = os.path.join(cache_path, self._name)
@@ -684,25 +683,24 @@ class SpcItemGitVersion(SpcItem):
                 else:
                     repo = Git(self._url, cache_path, logger=self._logger)
                 self._logger.debug("git fetch %s (mirror)" % self._name)
-                repo.fetch(args)
-
+                repo.fetch()
             rm(path + ".tmp", force=True, recursive=True)
             url = self._url
             if cache_path:
                 url = cache_path
-            if args.shallow:
+            if shallow:
                 self._logger.debug("git init")
                 repo = Git.git_init(url, path, logger=self._logger)
                 self._logger.debug("git remote add %s" % (self._url))
                 repo.add_remote()
                 self._logger.debug("git fetch %s" % (self._name))
-                repo.fetch(args, version=self._version)
+                repo.fetch(shallow=True, version=self._version)
                 repo.checkout("FETCH_HEAD", quiet=True)
             else:
                 self._logger.debug("git clone %s %s" % (self._url, self._name))
                 repo = Git.clone(url, path + ".tmp", logger=self._logger)
                 self._logger.debug("git fetch %s" % (self._name))
-                repo.fetch(args)
+                repo.fetch()
                 self._logger.debug("git checkout %s %s" % (self._version, self._name))
                 repo.checkout(self._version, quiet=True)
             self._logger.debug("git reset --hard %s" % (self._name))
@@ -759,31 +757,42 @@ class SpcItemGitBranch(SpcItem):
         fname = os.path.join(output_dir, self._name + ".tar")
         repo.archive(self._remote_branch, self._name, fname)
 
-    def checkout(self, srcdir, cache_path=None):
+    def checkout(self, srcdir, shallow=False, cache_path=None):
         path = os.path.join(srcdir, self._name)
         if not os.path.exists(path):
             if os.path.exists(path + ".tmp"):
                 self._logger.debug("rm -rf %s" % (path + ".tmp"))
                 rm(path + ".tmp", force=True, recursive=True)
-            repo = Git.clone(self._url, path + ".tmp", logger=self._logger)
-            if self._remote_branch.startswith("remotes/"):
-                repo.add_branch_fetch()
-                repo.fetch()
-            elif self._remote_branch.startswith("vendors/ARM/"):
-                repo.add_arm_vendor_remote()
-                repo.fetch(remote="vendors/ARM")
-
-            if self._remote_branch and self._local_branch != repo.current_branch():
-                branch = self._remote_branch
+            if shallow:
+                self._logger.debug("git init")
+                repo = Git.git_init(self._url, path, logger=self._logger)
+                self._logger.debug("git remote add %s" % (self._url))
+                repo.add_remote()
+                self._logger.debug("git fetch %s" % (self._name))
+                repo.fetch(shallow, version=self._local_branch)
+                repo.checkout(self._local_branch, quiet=True)
+            else:
+                repo = Git.clone(self._url, path + ".tmp", logger=self._logger)
                 if self._remote_branch.startswith("remotes/"):
-                    branch = "remotes/origin/" + self._remote_branch
+                    repo.add_branch_fetch()
+                    repo.fetch()
                 elif self._remote_branch.startswith("vendors/ARM/"):
-                    branch = "remotes/" + self._remote_branch
-                else:
-                    branch = "origin/" + self._remote_branch
-                repo.branch(branch, self._local_branch)
-            repo.checkout(self._local_branch, quiet=True)
-            repo.mv(path)
+                    repo.add_arm_vendor_remote()
+                    repo.fetch(remote="vendors/ARM")
+
+                if self._remote_branch and self._local_branch != repo.current_branch():
+                    branch = self._remote_branch
+                    if self._remote_branch.startswith("remotes/"):
+                        branch = "remotes/origin/" + self._remote_branch
+                    elif self._remote_branch.startswith("vendors/ARM/"):
+                        branch = "remotes/" + self._remote_branch
+                    else:
+                        branch = "origin/" + self._remote_branch
+                    repo.branch(branch, self._local_branch)
+                repo.checkout(self._local_branch, quiet=True)
+                repo.mv(path)
+        else:
+            raise Exception("%s already exists, please delete" % (path))
 
 class SpcItemSubversionRevision(SpcItem):
     def __init__(self, name, url, revision, logger=None, opt_arg=None):
@@ -853,7 +862,7 @@ class SpcItemBldroot(SpcItem):
             "bldroot-status-filter",
         ]
 
-    def checkout(self, srcdir, cache_path=None):
+    def checkout(self, srcdir, shallow=False, cache_path=None):
         # Get tag based on channel's filter
         cmd = [
             "bld",
@@ -901,7 +910,7 @@ class SpcItemBldroot(SpcItem):
                             )
                             self._logger.debug(msg)
                             self._logger.info("checkout: {name} using " "{artifact} from {tag}".format(**args))
-                            return spec[self._name].checkout(srcdir, cache_path)
+                            return spec[self._name].checkout(srcdir, shallow, cache_path)
                         else:
                             msg = (
                                 "found bldroot cycle {class} in component={name}, "
@@ -964,9 +973,9 @@ class Spc(object):
             if not component_filter or component_filter(component):
                 self[component].archive(output_dir)
 
-    def checkout(self, args, cache_path=None):
+    def checkout(self, srcdir, shallow=False, cache_path=None):
         for component in self:
-            self[component].checkout(args, cache_path)
+            self[component].checkout(srcdir, shallow, cache_path)
 
     def __eq__(self, other):
         """
@@ -1334,7 +1343,7 @@ def do_archive(args):
 
 def do_checkout(args):
     spc = Spc.open(args.SPCFILE[0])
-    spc.checkout(args, cache_path=args.cachedir)
+    spc.checkout(args.srcdir, args.shallow, cache_path=args.cachedir)
     return 0
 
 class Extend(argparse.Action):
