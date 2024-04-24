@@ -5,15 +5,20 @@
 # This script is a top level driver for the build-baremetal-toolchain.sh,
 # build-cross-linux-toolchain.sh and build-native-toolchain.sh build scripts.
 #
+# The scripts rely on the following paths:
+# - execdir: Current working directory
+# - script_dir: Directory where the scripts are collected (location of gnu-devtools-for-arm)
+# - buildroot: Directory where the builds are created (same as execdir)
+# - srcdir: Source directory ($buildroot/src)
 
 set -e
 set -u
 
 PS4='+$(date +%Y-%m-%d:%H:%M:%S) (${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 
-execdir=`dirname "$0"`
+execdir=`pwd`
 execdir=`cd "$execdir"; pwd`
-script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+script_dir=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 if [ ! -f "$script_dir/utilities.sh" ]; then
   echo "error:Could not find helper script at $script_dir/utilities.sh"
   exit 1

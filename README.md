@@ -297,11 +297,22 @@ After completion of one of the above steps, the full ./src folder should now con
 
 The build scripts can be invoked either directly through the generic wrapper script `build-gnu-toolchain.sh` or with a call to the lower-level scripts `build-baremetal-toolchain.sh` (for baremetal toolchains) and `build-cross-linux-toolchain.sh` (for linux targeting toolchains).
 
-First, add the `gnu-devtools-for-arm` folder to your PATH environment variable:
+In order to configure the scripts to run, it is possible to either add them to PATH or create a link in the working directory:
+
+Option1: PATH environment variable:
+
 ```
 export PATH="$PWD/src/gnu-devtools-for-arm:$PATH"
 build-gnu-toolchain.sh --target=<target> start
 ```
+
+Option2: symlink in working dir:
+
+```
+ln -s src/gnu-devtools-for-arm/build-gnu-toolchain.sh
+./build-gnu-toolchain.sh --target=<target> start
+```
+
 
 ##### Building a toolchain in debug mode for development
 In order to build a toolchain, the build-gnu-toolchain.sh wrapper script is usually used. It has a simple interface for the usual development use cases.
