@@ -1106,12 +1106,16 @@ while true; do
     # In a parallel build situation we do not want autoconf kicking in
     # and modifying the src directory. Disable autoconf
     libc_headers_srcdir="$libc_src"
-    libc_headers_extra_config_envflags="AUTOCONF=no \
-       BUILD_CC=gcc \
-       CC=$(ternary $flag_enable_mingw ${host_toolchain_path:-}/$target-gcc ${installdir}/${host_prefix}/bin/$target-gcc ${abi:-}) \
-       CXX=$(ternary $flag_enable_mingw ${host_toolchain_path:-}/$target-g++ ${installdir}/${host_prefix}/bin/$target-g++ ${abi:-}) \
-       AR=$(ternary $flag_enable_mingw ${host_toolchain_path:-}/$target-ar ${installdir}/${host_prefix}/bin/$target-ar) \
-       RANLIB=$(ternary $flag_enable_mingw ${host_toolchain_path:-}/$target-ranlib ${installdir}/${host_prefix}/bin/$target-ranlib)"
+    libc_headers_extra_config_envflags=$(
+    cat <<-'EOF'
+      AUTOCONF=no \
+      BUILD_CC=gcc \
+      CC=$(ternary $flag_enable_mingw "${host_toolchain_path:-}/$target-gcc" "${installdir}/${host_prefix}/bin/$target-gcc ${abi:-}") \
+      CXX=$(ternary $flag_enable_mingw "${host_toolchain_path:-}/$target-g++" "${installdir}/${host_prefix}/bin/$target-g++ ${abi:-}") \
+      AR=$(ternary $flag_enable_mingw "${host_toolchain_path:-}/$target-ar" "${installdir}/${host_prefix}/bin/$target-ar") \
+      RANLIB=$(ternary $flag_enable_mingw "${host_toolchain_path:-}/$target-ranlib" "${installdir}/${host_prefix}/bin/$target-ranlib")
+EOF
+    )
     libc_headers_config="$std_libc_config_opts \
             --prefix=$target_prefix \
             ${bugurl:+--with-bugurl="\"$bugurl\""} \
@@ -1221,13 +1225,18 @@ EOF
     libc_objdir="$objdir/$libname"
     libc_srcdir="$libc_src"
     libc_install_targets="install install_root=$build_sysroot"
-    libc_extra_config_envflags="AUTOCONF=no BUILD_CC=gcc \
-        CC=$(ternary $flag_enable_mingw ${host_toolchain_path:-}/$target-gcc ${installdir}/${host_prefix}/bin/$target-gcc ${abi:-}) \
-        CXX=$(ternary $flag_enable_mingw ${host_toolchain_path:-}/$target-g++ ${installdir}/${host_prefix}/bin/$target-g++ ${abi:-}) \
-        AR=$(ternary $flag_enable_mingw ${host_toolchain_path:-}/$target-ar ${installdir}/${host_prefix}/bin/$target-ar) \
-        RANLIB=$(ternary $flag_enable_mingw ${host_toolchain_path:-}/$target-ranlib ${installdir}/${host_prefix}/bin/$target-ranlib) \
-        libc_cv_slibdir=$libc_cv_slibdir \
-        libc_cv_rtlddir=$libc_cv_rtlddir"
+    libc_extra_config_envflags=$(
+    cat <<-'EOF'
+      AUTOCONF=no \
+      BUILD_CC=gcc \
+      CC=$(ternary $flag_enable_mingw "${host_toolchain_path:-}/$target-gcc" "${installdir}/${host_prefix}/bin/$target-gcc ${abi:-}") \
+      CXX=$(ternary $flag_enable_mingw "${host_toolchain_path:-}/$target-g++" "${installdir}/${host_prefix}/bin/$target-g++ ${abi:-}") \
+      AR=$(ternary $flag_enable_mingw "${host_toolchain_path:-}/$target-ar" "${installdir}/${host_prefix}/bin/$target-ar") \
+      RANLIB=$(ternary $flag_enable_mingw "${host_toolchain_path:-}/$target-ranlib" "${installdir}/${host_prefix}/bin/$target-ranlib") \
+      libc_cv_slibdir=$libc_cv_slibdir \
+      libc_cv_rtlddir=$libc_cv_rtlddir
+EOF
+    )
     libc_config="$std_libc_config_opts \
             --prefix=$target_prefix \
             --with-headers=$build_sysroot/usr/include \
