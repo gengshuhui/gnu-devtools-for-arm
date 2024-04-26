@@ -236,6 +236,8 @@ python3 extras/source-fetch.py checkout [--shallow] --src-dir=..   <name of mani
 cd ../..
 ```
 
+Sample manifest files are provided in the spc directory; for example, spc/trunk.spc can be used to build a development version of the toolchain using the latest upstream sources.
+
 If the full history of the respective git repositories is not needed, it is possible to use --shallow for faster and more compact downloads.
 
 
