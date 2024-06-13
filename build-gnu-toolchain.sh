@@ -18,7 +18,11 @@ PS4='+$(date +%Y-%m-%d:%H:%M:%S) (${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FU
 
 execdir=`pwd`
 execdir=`cd "$execdir"; pwd`
-script_dir=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    script_dir=$(dirname $(greadlink -f "${BASH_SOURCE[0]}"))
+else
+    script_dir=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
+fi
 if [ ! -f "$script_dir/utilities.sh" ]; then
   echo "error:Could not find helper script at $script_dir/utilities.sh"
   exit 1
