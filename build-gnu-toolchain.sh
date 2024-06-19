@@ -314,6 +314,12 @@ srcdir="$buildroot/src"
 if [ -z "${targets:-}" ]; then
   targets=$all_targets_nonmorello
 fi
+
+target_count=$(echo $targets | wc -w)
+if [ "$target_count" -gt 1 ]; then
+    printf "warning: You have specified multiple targets, and therefore if the specified arguments are invalid for a target, that target build will fail.\n"
+fi
+
 for target in $targets
 do
   builddir="$buildroot/build-$target"
