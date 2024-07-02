@@ -52,3 +52,4 @@ set aarch64_binutils_list  [list "aarch64-elf-aem{-mcmodel=small}" \
 set aarch64_gdb_list [list "aarch64-elf-qemu{-mcpu=cortex-a53}"]
 
 source "[ file dirname [ file normalize [ info script ] ] ]/site-expand-list.exp"
+
