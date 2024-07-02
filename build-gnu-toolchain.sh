@@ -428,21 +428,23 @@ do
   esac
 
   # Set GCC multilib-list configuration flag
-  extra_multilib="--config-flags-gcc=--with-multilib-list="
-  if [ $flag_enable_aprofile -eq 1 ]; then
-    extra_multilib="${extra_multilib}aprofile"
-  fi
-
-  if [ $flag_enable_rmprofile -eq 1 ]; then
-    if [[ $extra_multilib == *profile ]]; then
-      # --with-multilib-list=aprofile,rmprofile
-      extra_multilib="${extra_multilib},"
+  if [ $flag_disable_multilib -eq 0 ]; then
+    extra_multilib="--config-flags-gcc=--with-multilib-list="
+    if [ $flag_enable_aprofile -eq 1 ]; then
+      extra_multilib="${extra_multilib}aprofile"
     fi
-    extra_multilib="${extra_multilib}rmprofile"
-  fi
-  # Only inject with-multilib-list with profile if flag was explicitly set
-  if [[ $extra_multilib == *profile ]]; then
-    extraflags="$extraflags $extra_multilib"
+
+    if [ $flag_enable_rmprofile -eq 1 ]; then
+      if [[ $extra_multilib == *profile ]]; then
+        # --with-multilib-list=aprofile,rmprofile
+        extra_multilib="${extra_multilib},"
+      fi
+      extra_multilib="${extra_multilib}rmprofile"
+    fi
+    # Only inject with-multilib-list with profile if flag was explicitly set
+    if [[ $extra_multilib == *profile ]]; then
+      extraflags="$extraflags $extra_multilib"
+    fi
   fi
 
   case $target in aarch64*-linux-gnu_ilp32)

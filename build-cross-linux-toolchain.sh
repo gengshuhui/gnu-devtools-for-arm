@@ -210,6 +210,44 @@ stages=()
 
 cwd=`pwd`
 
+set_gdb_config()
+{
+    # GDB now requires mpfr [1] and prefix is required when using --with-gmp and --with-mpfr options.
+    # We still want to keep the previous config flags --with-libgmp-prefix, --with-libgmp-type, --with-libmpfr-type, and --with-libmpfr-prefix
+    # so that previous versions of GDB can still build.
+    # [1] See commit 991180627851801f1999d1ebbc0e569a17e47c74 from  binutils-gdb--gdb: Use toplevel configure for GMP and MPFR for gdb.
+    # https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=991180627851801f1999d1ebbc0e569a17e47c74
+
+    gdb_config="--enable-64-bit-bfd \
+      --enable-targets="$enable_binutils_targets" \
+      --target="$target" \
+      ${bugurl:+--with-bugurl="\"$bugurl\""} \
+      --enable-initfini-array \
+      --enable-plugins \
+      --enable-tui \
+      --disable-binutils \
+      --disable-sim \
+      --disable-as \
+      --disable-ld \
+      --disable-doc \
+      --disable-gdbtk \
+      --disable-nls \
+      --disable-werror \
+      --without-x \
+      --prefix="${host_prefix}" \
+      --with-build-sysroot="${build_sysroot}" \
+      --with-sysroot="${sysroot}" \
+      ${hostmpfr:+--with-libmpfr-prefix=$hostmpfr} \
+      ${hostmpfr:+--with-libmpfr-type=static} \
+      ${hostmpfr:+--with-mpfr=$hostmpfr} \
+      ${hostgmp:+--with-libgmp-prefix=$hostgmp} \
+      ${hostgmp:+--with-libgmp-type=static} \
+      ${hostgmp:+--with-gmp=$hostgmp} \
+      ${extra_config_flags_binutils:-} \
+      ${extra_config_flags_host_tools:-} \
+      ${extra_config_flags_gdb:-}"
+}
+
 ## The layout version for the binary tar ball we create.  This should be stepped
 ## each time we change the structure of the delivered tar ball.
 layout_version="2"
@@ -921,8 +959,6 @@ while true; do
         extra_config_flags_gdb="${extra_config_flags_gdb:-} --disable-tui"
     fi
 
-    extra_config_flags_gdb="${extra_config_flags_gdb:-} --with-python=${gdb_with_python:-no}"
-
     saved_path="$PATH"
     if [ $native_build -eq 1 ]; then
       # If we're doing a native build (e.g. on aarch64 linux), then we want to
@@ -953,43 +989,42 @@ while true; do
     gdb_cflags="$cflags"
     gdb_cxxflags="$cflags"
 
-    # GDB now requires mpfr [1] and prefix is required when using --with-gmp and --with-mpfr options.
-    # We still want to keep the previous config flags --with-libgmp-prefix, --with-libgmp-type, --with-libmpfr-type, and --with-libmpfr-prefix
-    # so that previous versions of GDB can still build.
-    # [1] See commit 991180627851801f1999d1ebbc0e569a17e47c74 from  binutils-gdb--gdb: Use toplevel configure for GMP and MPFR for gdb.
-    # https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=991180627851801f1999d1ebbc0e569a17e47c74
-    gdb_config="--enable-64-bit-bfd \
-      --enable-targets="$enable_binutils_targets" \
-      --target="$target" \
-      ${bugurl:+--with-bugurl="\"$bugurl\""} \
-      --enable-initfini-array \
-      --enable-plugins \
-      --enable-tui \
-      --disable-binutils \
-      --disable-sim \
-      --disable-as \
-      --disable-ld \
-      --disable-doc \
-      --disable-gdbtk \
-      --disable-nls \
-      --disable-werror \
-      --without-x \
-      --prefix="${host_prefix}" \
-      --with-build-sysroot="${build_sysroot}" \
-      --with-sysroot="${sysroot}" \
-      ${hostmpfr:+--with-libmpfr-prefix=$hostmpfr} \
-      ${hostmpfr:+--with-libmpfr-type=static} \
-      ${hostmpfr:+--with-mpfr=$hostmpfr} \
-      ${hostgmp:+--with-libgmp-prefix=$hostgmp} \
-      ${hostgmp:+--with-libgmp-type=static} \
-      ${hostgmp:+--with-gmp=$hostgmp} \
-      ${extra_config_flags_binutils:-} \
-      ${extra_config_flags_host_tools:-} \
-      ${extra_config_flags_gdb:-}"
+    set_gdb_config
+    gdb_config="${gdb_config:-} --with-python=no"
+
     gdb_build_targets="all-gdb html-gdb"
     gdb_install_targets="install-gdb install-html-gdb"
     gdb_destdir="${installdir}"
     do_config_build_install gdb
+
+    if [ ${gdb_with_python:-no} = "yes" ]; then
+        push_stages "gdb-python"
+    fi
+
+    PATH="$saved_path"
+    ;;
+
+  gdb-python)
+    gdb_python_srcdir="$gdb_src"
+    gdb_python_objdir="$objdir/gdb_python"
+
+    saved_path="$PATH"
+    if [ $native_build -eq 1 ]; then
+      # Dropping our newly-built tools from the PATH will force GDB to use the
+      # system tools and link against the system libc, which is what we want
+      # here.
+      PATH="$PATH_ORIGINAL"
+    fi
+
+    gdb_python_cflags="$cflags"
+    gdb_python_cxxflags="$cflags"
+
+    set_gdb_config
+    gdb_python_config="${gdb_config:-} --with-python=yes --program-prefix=$target- --program-suffix=-py"
+    gdb_python_build_targets="all-gdb"
+    gdb_python_install_targets="install-gdb"
+    gdb_python_destdir="${installdir}"
+    do_config_build_install gdb_python
 
     PATH="$saved_path"
     ;;
@@ -1026,7 +1061,7 @@ while true; do
 
   gcc1)
     if [ $flag_enable_mingw -eq 1 ]; then
-      extra_config_flags_gcc="${extra_config_flags_gcc:-} --with-libiconv-prefix=$hosticonv"
+      extra_config_flags_gcc="${extra_config_flags_gcc:-} --with-libiconv-prefix=$hosticonv --enable-mingw-wildcard"
     fi
     gcc1_srcdir=$gcc_src
     gcc1_objdir=$objdir/gcc1
