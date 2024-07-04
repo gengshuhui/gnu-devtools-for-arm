@@ -1,34 +1,41 @@
 # README
 
 # Table of Contents
-	* [Overview](#Overview)
-	* [Package contents](#Package-contents)
-	* [Supported configurations](#Supported-configurations)
-	* [How to build the toolchains](#How-to-build-the-toolchains)
-		* [Create the build environment](#Create-the-build-environment)
-			* [Install prerequisite packages](#Install-prerequisite-packages)
-			* [Create folder for build](#Create-folder-for-build)
-			* [Obtain the source code of all the relevant GNU projects](#Obtain-the-source-code-of-all-the-relevant-GNU-projects)
-			* [Invoking the build scripts](#Invoking-the-build-scripts)
+* [Overview](#Overview)
+* [Package contents](#Package-contents)
+* [Supported configurations](#Supported-configurations)
+* [How to build the toolchains](#How-to-build-the-toolchains)
+	* [Create the build environment](#Create-the-build-environment)
+		* [Install prerequisite packages](#Install-prerequisite-packages)
+		* [Create folder for build](#Create-folder-for-build)
+		* [Obtain the source code of all the relevant GNU projects](#Obtain-the-source-code-of-all-the-relevant-GNU-projects)
+	* [Invoking the build scripts](#Invoking-the-build-scripts)
+		* [Building a toolchain in debug mode for development](#Building-a-toolchain-in-debug-mode-for-development)
+		* [Building a toolchain in release mode](#Building-a-toolchain-in-release-mode)
 		* [Known build issues](#Known-build-issues)
-	* [How to test the toolchains (Not supported yet)](#How-to-test-the-toolchains-(Not-supported-yet))
-    * [Licence](#Licence)
+	* [How to test the toolchains](#How-to-test-the-toolchains)
+		* [Testing the baremetal toolchains](#Testing-the-baremetal-toolchains)
+		* [Testing with QEMU](#Testing-with-QEMU)
+		* [Testing with Fastmodels](#Testing-with-Fastmodels)
+		* [Testing many configurations with site*.exp](#Testing-many-configurations-with-site*.exp)
+		* [GDB testing](#GDB-testing)
+	* [How to debug target binaries running on QEMU](#How-to-debug-target-binaries-running-on-QEMU)
+* [Licence](#Licence)
 
-## Overview
+
+# Overview
 
 **gnu-devtools-for-arm is an open-source project for building, testing and debugging the Arm GNU Toolchain**
 
-> At this time, the scripts don't implement the testing process yet, it will be introduced soon in a future release.
-
 The Arm GNU toolchain gets periodically released at [https://developer.arm.com/Tools%20and%20Software/GNU%20Toolchain](https://developer.arm.com/Tools%20and%20Software/GNU%20Toolchain)
 
-- gnu-devtools-for-arm provides users access to build scripts that produce toolchains with similar configuration and build of the Arm GNU Toolchain releases. The scripts do not currently support certain features such as regression testing and binary signing.
+- gnu-devtools-for-arm provides users access to build scripts that produce toolchains with similar configuration and build of the Arm GNU Toolchain releases. The scripts include capabilities to fully build-test-debug using Arm's [Fast Models](https://developer.arm.com/Tools%20and%20Software/Fast%20Models) or, in some cases, [QEMU](https://www.qemu.org/).
 - The intended users of this package are:
-  - GNU Toolchain developers, who want to build and test the toolchain on models (testing not supported yet).
+  - GNU Toolchain developers, who want to build and test the toolchain on models.
   - Users of the Arm GNU Toolchain that wish to build toolchains similar to Arm GNU Toolchain releases, from Source Code.
-- This package is a work-in-progress, it does not currently support all build-host-target variants or complete testing of those variants.
+- This package is a work-in-progress, it does not currently support all build-host-target variants or complete testing of all variants.
 
-## Package contents
+# Package contents
 
 **The components of gnu-devtools-for-arm can be categorised as:**
 
@@ -45,12 +52,16 @@ gnu-devtools-for-arm
 ├── build-baremetal-toolchain.sh
 ├── build-cross-linux-toolchain.sh
 ├── build-gnu-toolchain.sh
+├── dejagnu
+│   └── <a set of dejagnu test configuration board files>
 ├── extras
+│   ├── fm-gdb-plugin
+│   ├── models-run
 │   └── source-fetch.py
 └── utilities.sh
 ```
 
-## Supported configurations
+# Supported configurations
 
 **What configurations are officially supported**
 
@@ -88,13 +99,13 @@ The following table shows the list of combinations that work for building the to
 [*] This list of toolchains is the full list of currently released Arm GNU Toolchain variants. Other build-host-target combinations are not supported by these scripts (Contributions welcome!).
 
 
-## How to build the toolchains
+# How to build the toolchains
 
 To build the toolchain, please follow the following process:
 
-### Create the build environment
+## Create the build environment
 
-#### Install prerequisite packages
+### Install prerequisite packages
 
 The GNU Toolchain binaries that are released by Arm are built in relatively old OS environments, like CentOS7 or Ubuntu 18.04. This is particularly important as to ensure the highest backward compatibility with old glibc versions.
 The toolchain binaries produced by these scripts will only work on the same (or newer) OS version on which the scripts are run.
@@ -102,7 +113,7 @@ The toolchain binaries produced by these scripts will only work on the same (or 
 A number of packages are needed to build the toolchain. If source-fetch.py is being used to clone upstream repositories or Python-enabled GDB is needed, a python3 environment will be required.
 
 
-##### For Ubuntu Linux distros
+#### For Ubuntu Linux distros
 
 Here is a list of packages that might be required:
 
@@ -132,7 +143,7 @@ sudo apt install -y \
   zlib1g-dev
 ```
 
-##### For macOS 11(Big Sur) or higher
+#### For macOS 11(Big Sur) or higher
 
 Provided that xcode is installed, run, if needed:
 
@@ -189,7 +200,7 @@ brew install $PKG@$PKGVER
 
 
 
-#### Create folder for build
+### Create folder for build
 
 In a clean folder, create a ./src subfolder and clone this gnu-devtools-for-arm repo into it
 
@@ -198,11 +209,11 @@ mkdir src
 git clone https://git.gitlab.arm.com/tooling/gnu-devtools-for-arm.git ./src/gnu-devtools-for-arm
 ```
 
-#### Obtain the source code of all the relevant GNU projects
+### Obtain the source code of all the relevant GNU projects
 
 The source code can be obtained in different ways, please check below for the one that fits best for specific use cases:
 
-##### Download the Source Code tar from one of our releases
+#### Download the Source Code tar from one of our releases
 
 The source code of the release to rebuild can be found at this address, in the "Source code" section: https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads
 
@@ -224,7 +235,7 @@ Note 1: This Source Code package does not contain the source code for QEMU, beca
 Note 2: The build scripts contain legacy code for supporting minor components cloog and libffi. This is not currently used by our standard build processes, hence why they have not been documented in these instructions.
 
 
-##### Use source-fetch.py to fetch from upstream repositories
+#### Use source-fetch.py to fetch from upstream repositories
 
 With python3 installed in the build environment (see package list above), it is possible to use the source snapshot manifest file of the release to rebuild: https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads
 
@@ -295,7 +306,7 @@ After completion of one of the above steps, the full ./src folder should now con
   └───qemu/                [OPTIONAL: Only needed if you plan on testing with QEMU. Will only be present if manually fetched.]
 ```
 
-#### Invoking the build scripts
+## Invoking the build scripts
 
 The build scripts can be invoked either directly through the generic wrapper script `build-gnu-toolchain.sh` or with a call to the lower-level scripts `build-baremetal-toolchain.sh` (for baremetal toolchains) and `build-cross-linux-toolchain.sh` (for linux targeting toolchains).
 
@@ -316,7 +327,7 @@ ln -s src/gnu-devtools-for-arm/build-gnu-toolchain.sh
 ```
 
 
-##### Building a toolchain in debug mode for development
+### Building a toolchain in debug mode for development
 In order to build a toolchain, the build-gnu-toolchain.sh wrapper script is usually used. It has a simple interface for the usual development use cases.
 
 Generally, the calls look like this. Use `build-gnu-toolchain.sh --help` to discover more command line options.
@@ -383,7 +394,7 @@ build-gnu-toolchain.sh --target=arm-none-eabi --with-arch=armv8.1-m.main+mve.fp+
 build-gnu-toolchain.sh --target=arm-none-eabi --with-arch=armv8.1-m.main+mve.fp+fp.dp --disable-multilib -- --config-flags-gcc=--with-float=hard gcc2
 ```
 
-##### Building a toolchain in release mode
+### Building a toolchain in release mode
 
 Running the scripts in release mode also requires that some parameters from the lower-level scripts `build-baremetal-toolchain.sh` and `build-cross-linux-toolchain.sh` to be used.
 The following are sample invocations as used to build our binary releases:
@@ -476,7 +487,178 @@ or
 
 ## How to test the toolchains
 
-These scripts do not currently support running the regression testsuite.
+In this section we describe how to test all the above `--target` options (aarch64-none-elf, aarch64-none-linux-gnu, arm-none-eabi, etc.) across different configurations.
+All these toolchains are currently cross-compiler toolchains, so they require a model or simulator for the target CPU and environment. Supported models are:
+* Arm's various Fast Models products: Supported only on x86_64 Linux hosts and some models may require a licence from Arm.
+* QEMU: We compile QEMU from source in these scripts, so it should work on x86_64 and Arm 32-bit and 64-bit Linux hosts.
+
+In order to control the testing we provide `site*.exp` files that define a set of testsuite configurations. These then pull in the applicable DejaGNU `board file.exp` for each architecture target.
+
+### Testing the baremetal toolchains
+
+The baremetal toolchains can be tested with QEMU (on any Linux host) or with Arm's Fastmodels (on x86_64 Linux hosts).
+
+These toolchains contain different multilibs for different target architectures.
+
+
+<details open>
+<summary>For 32-bit `arm-none-eabi` there are currently 39 multilibs (the number generally increases over time)</summary>
+<br>
+arm/v5te/softfp;@marm@march=armv5te+fp@mfloat-abi=softfp
+
+arm/v5te/hard;@marm@march=armv5te+fp@mfloat-abi=hard
+
+thumb/nofp;@mthumb@mfloat-abi=soft
+
+thumb/v7/nofp;@mthumb@march=armv7@mfloat-abi=soft
+
+thumb/v7+fp/softfp;@mthumb@march=armv7+fp@mfloat-abi=softfp
+
+thumb/v7+fp/hard;@mthumb@march=armv7+fp@mfloat-abi=hard
+
+thumb/v7-r+fp.sp/softfp;@mthumb@march=armv7-r+fp.sp@mfloat-abi=softfp
+
+thumb/v7-r+fp.sp/hard;@mthumb@march=armv7-r+fp.sp@mfloat-abi=hard
+
+thumb/v7-a/nofp;@mthumb@march=armv7-a@mfloat-abi=soft
+
+thumb/v7-a+fp/softfp;@mthumb@march=armv7-a+fp@mfloat-abi=softfp
+
+thumb/v7-a+fp/hard;@mthumb@march=armv7-a+fp@mfloat-abi=hard
+
+thumb/v7-a+simd/softfp;@mthumb@march=armv7-a+simd@mfloat-abi=softfp
+
+thumb/v7-a+simd/hard;@mthumb@march=armv7-a+simd@mfloat-abi=hard
+
+thumb/v7ve+simd/softfp;@mthumb@march=armv7ve+simd@mfloat-abi=softfp
+
+thumb/v7ve+simd/hard;@mthumb@march=armv7ve+simd@mfloat-abi=hard
+
+thumb/v8-a/nofp;@mthumb@march=armv8-a@mfloat-abi=soft
+
+thumb/v8-a+simd/softfp;@mthumb@march=armv8-a+simd@mfloat-abi=softfp
+
+thumb/v8-a+simd/hard;@mthumb@march=armv8-a+simd@mfloat-abi=hard
+
+thumb/v6-m/nofp;@mthumb@march=armv6s-m@mfloat-abi=soft
+
+thumb/v7-m/nofp;@mthumb@march=armv7-m@mfloat-abi=soft
+
+thumb/v7e-m/nofp;@mthumb@march=armv7e-m@mfloat-abi=soft
+
+thumb/v7e-m+fp/softfp;@mthumb@march=armv7e-m+fp@mfloat-abi=softfp
+
+thumb/v7e-m+fp/hard;@mthumb@march=armv7e-m+fp@mfloat-abi=hard
+
+thumb/v7e-m+dp/softfp;@mthumb@march=armv7e-m+fp.dp@mfloat-abi=softfp
+
+thumb/v7e-m+dp/hard;@mthumb@march=armv7e-m+fp.dp@mfloat-abi=hard
+
+thumb/v8-m.base/nofp;@mthumb@march=armv8-m.base@mfloat-abi=soft
+
+thumb/v8-m.main/nofp;@mthumb@march=armv8-m.main@mfloat-abi=soft
+
+thumb/v8-m.main+fp/softfp;@mthumb@march=armv8-m.main+fp@mfloat-abi=softfp
+
+thumb/v8-m.main+fp/hard;@mthumb@march=armv8-m.main+fp@mfloat-abi=hard
+
+thumb/v8-m.main+dp/softfp;@mthumb@march=armv8-m.main+fp.dp@mfloat-abi=softfp
+
+thumb/v8-m.main+dp/hard;@mthumb@march=armv8-m.main+fp.dp@mfloat-abi=hard
+
+thumb/v8.1-m.main+mve/hard;@mthumb@march=armv8.1-m.main+mve@mfloat-abi=hard
+
+thumb/v8.1-m.main+pacbti/bp/nofp;@mthumb@march=armv8.1-m.main+pacbti@mbranch-protection=standard@mfloat-abi=soft
+
+thumb/v8.1-m.main+pacbti+fp/bp/softfp;@mthumb@march=armv8.1-m.main+pacbti+fp@mbranch-protection=standard@mfloat-abi=softfp
+
+thumb/v8.1-m.main+pacbti+fp/bp/hard;@mthumb@march=armv8.1-m.main+pacbti+fp@mbranch-protection=standard@mfloat-abi=hard
+
+thumb/v8.1-m.main+pacbti+dp/bp/softfp;@mthumb@march=armv8.1-m.main+pacbti+fp.dp@mbranch-protection=standard@mfloat-abi=softfp
+
+thumb/v8.1-m.main+pacbti+dp/bp/hard;@mthumb@march=armv8.1-m.main+pacbti+fp.dp@mbranch-protection=standard@mfloat-abi=hard
+
+thumb/v8.1-m.main+pacbti+mve/bp/hard;@mthumb@march=armv8.1-m.main+pacbti+mve@mbranch-protection=standard@mfloat-abi=hard
+</details>
+
+
+
+For `aarch64` there are currently only 2 (LP64 and ILP32).
+
+Technically, we'd need to test all of the above architecture combinations in Big Endian and Little Endian mode (and even more architecture combinations that aren't reflected in the multilibs) to ensure correctness of the toolchain, but, especially for 32-bit `arm`, that would be really exhaustive. As such, we usually care about testing:
+
+For 32-bit `arm`
+```
+-marm/-march=armv7-a/-mfloat-abi=soft
+-mthumb/-march=armv8-a+simd/-mfloat-abi=hard
+-mthumb/-march=armv6s-m/-mtune=cortex-m0/-mfloat-abi=soft
+-mthumb/-march=armv7-m/-mtune=cortex-m3/-mfloat-abi=softfp
+-mthumb/-march=armv7e-m+fp.dp/-mtune=cortex-m7/-mfloat-abi=hard
+-mthumb/-march=armv8-m.base/-mtune=cortex-m23/-mfloat-abi=soft
+-mthumb/-march=armv8-m.main+dsp+fp/-mtune=cortex-m33/-mfloat-abi=hard
+-mthumb/-march=armv8.1-m.main+mve.fp+fp.dp/-mtune=cortex-m55/-mfloat-abi=hard
+```
+
+For 64-bit `aarch64`:
+```
+-march=armv8-a
+-march=armv8.6-a+sve
+```
+
+**Note 1:** We generally don't test or track Big Endian configurations.
+
+**Note 2:** The `aarch64` ILP32 configuration, although it exists as a multilib, is also not regularly tested or tracked.
+
+**Note 3:** Internally this testing is done with Fastmodels, but doing it with QEMU is equally valid.
+
+### Testing with QEMU
+
+In order to run testing with QEMU, it is necessary to have it included as per the process described above. This should have happened if a `qemu` folder in `./src` was checked out. The QEMU binary should be found under `./build-<target>/install-qemu/bin/qemu<arm/aarch64>`.
+If a version of QEMU under that path wasn't included, it is possible to add the QEMU source in the aforementioned location and re-run the build script, with the same parameters as before, but with the `start` command at the end of the invocation.
+
+Example invocation of tests on QEMU
+
+```
+build-gnu-toolchain.sh --target=arm-none-eabi --dejagnu-site=site-exhaustive-qemu.exp check
+```
+
+### Testing with Fastmodels
+
+Testing with Fastmodels is possible as long as the correct models are installed, the scripts know where to find them, and the correct license, if needed, is used.
+
+The setup of the testing requires a review of the `board files`, so that they point to a locally installed version of Fastmodels. **Refer to the dejagnu folder and the provided board files, which can be changed as needed to point to a valid Fastmodels for the configuration under test**
+
+<span style="background-color: #FFFF00">TODO: more details on what model is needed in each case</span>
+
+### Testing many configurations with site*.exp
+
+It is possible to test all configurations in one go, using the provided `site-exhaustive-*.exp` file. This will take many hours, but it is possible to create derivatives of `site-exhaustive-*.exp` with fewer test sets.
+For using custom exp files, it is required to pass the parameter `--dejagnu-site=<site.exp filename>.exp` to the `build-gnu-toolchain.sh` invocation and add `check` (to test all components) or `check-gcc` (to only test the main compiler) as the command, e.g.:
+```
+build-gnu-toolchain.sh --target=arm-none-eabi --debug --debug-target --dejagnu-site=site-exhaustive-<model>.exp check
+```
+Note 1: the cross-linux toolchains `*-linux-gnu*` cannot be tested with Fastmodels, so **even if the Fastmodels site.exp file is given, the scripts will still attempt to run on QEMU**.
+Note 2: If testing with Fastmodels, **any board file used needs to customization to point to a valid local installation of Fastmodels**
+
+
+####  Testing a single configuration with a single target board file
+
+This is similar to using a site*.exp file, except that the `--target-board` parameter must be given and **appropriate RUNTESTFLAGS must be set.**
+```
+RUNTESTFLAGS="-mthumb/-march=armv8.1-m.main+mve.fp+fp.dp/-mtune=cortex-m55/-mfloat-abi=hard" build-gnu-toolchain.sh --target=arm-none-eabi --debug --debug-target --with-arch=armv8.1-m.main+mve.fp+fp.dp --target-board=arm-eabi-mps2-armv8.1-m.main check
+
+```
+
+#### Testing native toolchains
+Building native toolchains through these scripts isn't currently supported.
+
+### GDB testing
+GDB testing is generally disabled. We haven't monitored the GDB testsuite through these scripts for many years. This needs proper debugging before re-enabling (also note that GDB testing only works with QEMU as the simulator, not with Fastmodels)
+
+## How to debug target binaries running on QEMU
+See (https://qemu-project.gitlab.io/qemu/system/gdb.html)[https://qemu-project.gitlab.io/qemu/system/gdb.html].
+
+The DejaGNU board file provide examples of how the QEMU binary is executed (qemu-aarch64, qemu-aarch64_be, qemu-arm, etc.) and what command line options are available (usually just a `-cpu` option).
 
 # Licence
 This project is licensed under the terms of the MIT license.
