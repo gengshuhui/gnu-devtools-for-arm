@@ -1062,12 +1062,21 @@ while true; do
   gcc1)
     if [ $flag_enable_mingw -eq 1 ]; then
       extra_config_flags_gcc="${extra_config_flags_gcc:-} --with-libiconv-prefix=$hosticonv --enable-mingw-wildcard"
+      host_config_options=
+    else
+      host_config_options="\
+        ${hostgmp:+--with-gmp=$hostgmp} \
+        ${hostmpfr:+--with-mpfr=$hostmpfr} \
+        ${hostmpc:+--with-mpc=$hostmpc} \
+        ${hostcloog:+--with-cloog=$hostcloog} \
+        ${hostisl:+--with-isl=$hostisl}"
     fi
     gcc1_srcdir=$gcc_src
     gcc1_objdir=$objdir/gcc1
     gcc1_cflags="$cflags"
     gcc1_cxxflags="$cflags"
-    gcc1_config="--target=$target \
+    gcc1_config="$host_config_options \
+        --target=$target \
         --prefix=${host_prefix} \
         --with-sysroot=${sysroot} \
         --with-build-sysroot=${build_sysroot} \
@@ -1085,11 +1094,7 @@ while true; do
         --disable-libmudflap \
         --disable-libquadmath \
         --enable-checking=$flag_check_bootstrap \
-        --enable-languages=c \
-        ${hostgmp:+--with-gmp=$hostgmp} \
-        ${hostmpfr:+--with-mpfr=$hostmpfr} \
-        ${hostmpc:+--with-mpc=$hostmpc} \
-        ${extra_config_flags_gcc:-}"
+        --enable-languages=c"
     gcc1_destdir=${installdir}
     do_config_build_install gcc1
     ;;

@@ -977,9 +977,16 @@ while true; do
 
   gcc1)
     if [ $flag_enable_gcc -eq 1 ]; then
-
       if [ $flag_enable_mingw -eq 1 ]; then
-	extra_config_flags_gcc="${extra_config_flags_gcc:-} --with-libiconv-prefix=$hosticonv"
+        extra_config_flags_gcc="${extra_config_flags_gcc:-} --with-libiconv-prefix=$hosticonv"
+        host_config_options=
+      else
+        host_config_options="\
+          ${hostgmp:+--with-gmp=$hostgmp} \
+          ${hostmpfr:+--with-mpfr=$hostmpfr} \
+          ${hostmpc:+--with-mpc=$hostmpc} \
+          ${hostcloog:+--with-cloog=$hostcloog} \
+          ${hostisl:+--with-isl=$hostisl}"
       fi
       gcc1_srcdir=$gcc_src
       gcc1_objdir=$objdir/gcc1
@@ -1001,13 +1008,9 @@ while true; do
       # gcc2 and pass an absolute path in prefix.
       # Because we supply the absolute path for $prefix here, we don't need
       # a DESTDIR to be set for the install stage.
-      gcc1_config="--target=$target \
+      gcc1_config="$host_config_options \
+          --target=$target \
 		      --prefix=$installdir \
-		      ${hostgmp:+--with-gmp=$hostgmp} \
-		      ${hostmpfr:+--with-mpfr=$hostmpfr} \
-		      ${hostmpc:+--with-mpc=$hostmpc} \
-		      ${hostcloog:+--with-cloog=$hostcloog} \
-		      ${hostisl:+--with-isl=$hostisl} \
 		      --disable-shared \
 		      --disable-nls \
 		      --disable-threads \
