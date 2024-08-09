@@ -2,7 +2,8 @@
 // cplatforms: linux/arm64, linux/arm/v7, linux/amd64
 
 stashes = []
-
+def gnuDevtoolsRepo = "ssh://eu-gerrit-1.euhpc.arm.com:29418/dsg-gnu/Internal/gnu-devtools-for-arm"
+def fmGdbPluginRepo = "ssh://eu-gerrit-1.euhpc.arm.com:29418/dsg-gnu/Internal/fm-gdb-plugin"
 def devtools =
 [
     buildBaremetal: [
@@ -185,6 +186,20 @@ def generateStage(jobSpecs) {
     }
 }
 
+def checkout(credId, targetDir, branch, repoUrl) {
+    checkout([
+        $class: 'GitSCM',
+        branches: [[name: "*/${branch}"]],
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [
+            [$class: 'RelativeTargetDirectory', relativeTargetDir: "${targetDir}/"],
+            [$class: 'CloneOption', depth: 1, noTags: true, reference: '', shallow: true]
+        ],
+        submoduleCfg: [],
+        userRemoteConfigs: [[credentialsId: credId, url: repoUrl]]
+    ])
+}
+
 def buildDevtoolsMap(devtools) {
     def devtoolsBuildMap = [:]
     buildScriptTargets.each {
@@ -202,6 +217,7 @@ def selectBuildScriptTargets() {
     buildScriptTargets = []
     def scmVars = checkout scm
     def gitFilesDiff = sh(script: "git diff-tree --no-commit-id --name-only -r ${scmVars.GIT_COMMIT}", returnStdout: true).trim().split('\n')
+    fmGdbCommitSHA = sh(script: "grep fm-gdb-plugin .file-origins.txt | awk '{print \$2}'", returnStdout: true).trim()
     println "Changed files: ${gitFilesDiff}"
     gitFilesDiff.each {
         file ->
@@ -232,7 +248,8 @@ pipeline {
         def localUser = 'dgboter'
         def release = "13.2.Rel1"
         def GNU_TOOLS_PATH = "src/gnu-devtools-for-arm"  // Relative path to gnu-devtools in the workspace
-        TOOLCHAIN_TARBALL_URL="https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/srcrel/arm-gnu-toolchain-src-snapshot-13.2.rel1.tar.xz"
+        TOOLCHAIN_TARBALL_URL = "https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/srcrel/arm-gnu-toolchain-src-snapshot-13.2.rel1.tar.xz"
+        PVLIB_HOME = "${WORKSPACE}/PVModelLib/0.0/*/external"
     }
     options {
         // This is required so that we first clean the workspace and then we do the scm checkout
@@ -255,6 +272,37 @@ pipeline {
                 script {
                     // Generated parallel stages for builds
                     parallel buildDevtoolsMap(devtools)
+                }
+            }
+        }
+        stage ('Eval fm-gdb-plugin') {
+            steps {
+                script {
+                    sshagent(credentials: ['dgboter-ssh']) {
+                        latestCommitSHA = sh(script: "git ls-remote ${fmGdbPluginRepo} HEAD | awk '{print \$1}'", returnStdout: true).trim()
+                    }
+                }
+            }
+        }
+        stage ('Build fm-gdb-plugin') {
+            when { expression { latestCommitSHA !=  fmGdbCommitSHA } }
+            steps {
+                script {
+                    node ("ubu2004") {
+
+                        sshagent(credentials: ['dgboter-ssh']) {
+                            checkout scm
+                            checkout('dgboter-ssh', 'fm-gdb-plugin', 'mainline', "${fmGdbPluginRepo}")
+                            sh "./internal_fm_gdb_plugin/sync_warehouse.sh login8.euhpc.arm.com 0.0 ./PVModelLib"
+                            dir("fm-gdb-plugin"){
+                                sh """
+                                    ./build.py
+                                """
+                                sh "./internal_fm_gdb_plugin/fm_gdb_commit.sh dgboter ${gnuDevtoolsRepo} main daniel.fellows@arm.com gianluca.busiello@arm.com habibul.islam@arm.com"
+                            }
+                        }
+                        cleanWs()
+                    }
                 }
             }
         }
