@@ -429,7 +429,7 @@ These are steps required to build both 32-bit and 64-bit Mingw toolchains
 
 3. Now, build the Mingw toolchain. Make sure to pass the bin directory containing the binaries of the previously built Linux toolchain using the --host-toolchain-path option. Specify the appropriate --host argument for Mingw via --config-flags-host-tools. Use i686-w64-mingw32 for 32-bit builds and x86_64-w64-mingw32 for 64-bit builds. Here is an example command:
 
-  ./build-gnu-toolchain.sh --target=aarch64-none-elf -- --builddir=/path-to-builddir/build-mingw-aarch64-none-elf  --config-flags-host-tools=-host=x86_64-w64-mingw32 --host-toolchain-path=/path-to-toolchain/aarch64-none-elf/install/bin
+  ./build-gnu-toolchain.sh --target=aarch64-none-elf -- --builddir=/path-to-builddir/build-mingw-aarch64-none-elf  --config-flags-host-tools=--host=x86_64-w64-mingw32 --host-toolchain-path=/path-to-toolchain/aarch64-none-elf/install/bin
 
 Building Newlib
 
@@ -480,3 +480,29 @@ These scripts do not currently support running the regression testsuite.
 
 # Licence
 This project is licensed under the terms of the MIT license.
+
+## fm-gdb-plugin Usage
+The GDB Plugin shared library is included in the extras directory and can be used for debugging target binaries running on Fast Models. The GDB Plugin is designed to interface with GDB. It is compatible with any GDB versions that supports target description XML.
+
+**Launching the GDB Plugin**
+To use the GDB Plugin, load it during the invocation of Fast Models by including the --fm-gdb-plugin parameter. This parameter points to the shared library file for the plugin. Upon specifying this parameter, the plugin will initialize and launch a GDB server instance, which listens for incoming connections on a specified TCP port.
+
+By default, the GDB server will listen on TCP port 10000. You can confirm that the server is running by checking the command line output. The following message should appear, indicating that the server is active and waiting for a connection:
+
+```GDBServer: Listening on: 0.0.0.0 port: 10000```
+
+**Supported Models**
+
+Currently, the fm-gdb-plugin supports the mps2 and base models. To determine the appropriate command line options to use with models-run, refer to the applicable DejaGNU board file. Typically, you will need to specify the --model and --arch options, with armv8-a being the default architecture.
+
+**Example Command**
+Here’s an example of how to run a test program with the GDB plugin:
+
+```models-run --model=mps2 --arch=armv7-m /path/to/your/test_program --fm-gdb-plugin=/path/to/fm-gdb-plugin.so```
+
+**Connecting to GDBServer**
+Once the GDB server is listening, you can connect to it using GDB by specifying the correct port number:
+
+```gdb /path/to/your/test_program -ex "tar rem :10000"```
+
+Once connected, GDB provides full control over the test program.
