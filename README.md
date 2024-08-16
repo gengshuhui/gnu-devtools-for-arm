@@ -115,7 +115,7 @@ sudo apt install -y \
   dblatex dejagnu dh-autoreconf docbook-xsl-doc-html docbook-xsl-doc-pdf docbook-xsl-ns doxygen \
   emacs expect \
   flex flip \
-  g++-mingw-w64-i686 g++ gawk gcc-mingw-w64-base gcc-mingw-w64-i686 gcc-mingw-w64-x86-64 gcc-mingw-w64 gcc-multilib gcc gdb gettext gfortran ghostscript git-core golang google-mock \
+  g++-mingw-w64-i686 g++-mingw-w64-x86-64 g++ gawk gcc-mingw-w64-base gcc-mingw-w64-i686 gcc-mingw-w64-x86-64 gcc-mingw-w64 gcc-multilib gcc gdb gettext gfortran ghostscript git-core golang google-mock \
   keychain \
   less libbz2-dev libc-dev libc6-dev libelf-dev libglib2.0-dev libgmp-dev libgmp3-dev libisl-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libpugixml-dev libreadline-dev libtool libx11-dev libxml2-utils linux-libc-dev \
   make mingw-w64-common mingw-w64-i686-dev mingw-w64-x86-64-dev \
@@ -413,6 +413,44 @@ The following are sample invocations as used to build our binary releases:
 * At Arm, we use the `--tag` and `--bugurl` options to the lower-level scripts to tag our releases.
 
 **It is important that the same tags used by Arm are not used when building the toolchain. Usage of a different branding needs to be specified in case `--tag` is needed.**
+
+### Building Mingw
+
+Building a Mingw toolchain requires pre-building the equivalent toolchain target for Linux. Make sure to install all the necessary dependencies specified earlier in this document before proceeding. Supported toolchains are aarch64-none-elf,aarch64_none_linux_gnu, arm_none_eabi and arm_none_linux_gnueabihf.
+These are steps required to build both 32-bit and 64-bit Mingw toolchains
+
+1. Create a build directory for the mingw toolchain. e.g build-mingw-aarch64-none-elf
+
+    mkdir -p build-mingw-aarch64-none-elf
+
+2. Before building the Mingw toolchain, you need to build the equivalent Linux toolchain for the desired target architecture. This step will ensure that all necessary binaries are available to build the target libraries, like libgcc and libc, when building the final mingw hosted toolchain. You can build this toolchain using the provided build script. e.g:
+
+  ./build-gnu-toolchain.sh --target=aarch64-none-elf
+
+3. Now, build the Mingw toolchain. Make sure to pass the bin directory containing the binaries of the previously built Linux toolchain using the --host-toolchain-path option. Specify the appropriate --host argument for Mingw via --config-flags-host-tools. Use i686-w64-mingw32 for 32-bit builds and x86_64-w64-mingw32 for 64-bit builds. Here is an example command:
+
+  ./build-gnu-toolchain.sh --target=aarch64-none-elf -- --builddir=/path-to-builddir/build-mingw-aarch64-none-elf  --config-flags-host-tools=-host=x86_64-w64-mingw32 --host-toolchain-path=/path-to-toolchain/aarch64-none-elf/install/bin
+
+Building Newlib
+
+If you want to build Newlib to use with your mingw toolchain, follow the steps outlined below, specifying the start-bootstrap-newlib stage as needed.
+
+1. Create a build directory e.g build-newlib-aarch64-none-elf
+
+  mkdir -p build-newlib-aarch64-none-elf
+
+2. Build the Newlib toolchain for the desired target architecture. Make sure to specify the start-bootstrap-newlib stage. Here is an example command:
+
+  ./build-gnu-toolchain.sh --target=aarch64-none-elf -- --builddir=/path-to-builddir/build-newlib-aarch64-none-elf --enable-binutils --enable-gcc --enable-gdb --no-check-gdb --enable-newlib --disable-qemu start-bootstrap-newlib
+
+3. After building Newlib, you need to integrate it into the existing Mingw toolchain. Use rsync to synchronize the necessary directories. Here are the commands:
+
+rsync -a ./build-newlib-aarch64-none-elf/install/aarch64-none-elf/include ./build-newlib-aarch64-none-elf/install-newlib/
+rsync -a ./build-newlib-aarch64-none-elf/install/aarch64-none-elf/lib ./build-newlib-aarch64-none-elf/install-newlib/
+rsync -a ./build-newlib-aarch64-none-elf/install/lib/gcc/aarch64-none-elf/13.3.1/ ./build-newlib-aarch64-none-elf/install-newlib/lib
+
+rsync -a ./build-newlib-aarch64-none-elf/install-newlib/include/ ./build-mingw-aarch64-none-elf/install/aarch64-none-elf/include/
+rsync -a ./build-newlib-aarch64-none-elf/install-newlib/lib/ ./build-mingw-aarch64-none-elf/install/lib/gcc/aarch64-none-elf/13.3.1/
 
 ### Known build issues
 
