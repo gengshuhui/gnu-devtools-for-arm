@@ -1343,7 +1343,7 @@ while true; do
         ;;
 
       arm*-*-eabi | arm*-eabi)
-        default_target_board="arm-eabi-qemu-ar-class.exp"
+        default_target_board="arm-eabi-qemu-ar-class"
 
         # LOOK! We don't run this for arm-none-eabi anymore! It is too
         # unreliable and needs properly debugging.
