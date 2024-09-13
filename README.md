@@ -438,9 +438,9 @@ These are steps required to build both 32-bit and 64-bit Mingw toolchains
 
   build-gnu-toolchain.sh --target=aarch64-none-elf
 
-3. Now, build the Mingw toolchain. Make sure to pass the bin directory containing the binaries of the previously built Linux toolchain using the --host-toolchain-path option. Specify the appropriate --host argument for Mingw via --config-flags-host-tools. Use i686-w64-mingw32 for 32-bit builds and x86_64-w64-mingw32 for 64-bit builds. Here is an example command:
+3. Now, build the Mingw toolchain. Make sure to pass the bin directory containing the binaries of the previously built Linux toolchain using the --host-toolchain-path option. Specify the appropriate MinGW host using the top-level --host option. Use i686-w64-mingw32 for 32-bit builds and x86_64-w64-mingw32 for 64-bit builds. Use --config-flags-host-tools only for additional host-tools configure flags. Here is an example command:
 
-  build-gnu-toolchain.sh --target=aarch64-none-elf -- --builddir=/path-to-builddir/build-mingw-aarch64-none-elf  --config-flags-host-tools=--host=x86_64-w64-mingw32 --host-toolchain-path=/path-to-toolchain/aarch64-none-elf/install/bin
+  build-gnu-toolchain.sh --target=aarch64-none-elf -- --builddir=/path-to-builddir/build-mingw-aarch64-none-elf --host=x86_64-w64-mingw32 --host-toolchain-path=/path-to-toolchain/aarch64-none-elf/install/bin
 
 Building Newlib
 

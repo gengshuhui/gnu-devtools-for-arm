@@ -229,6 +229,7 @@ set_gdb_config()
                    ${hostgmp:+--with-libgmp-type=static} \
                    ${hostgmp:+--with-gmp=$hostgmp} \
                    ${extra_config_flags_binutils:-} \
+                   ${host_arg:-} \
                    ${extra_config_flags_host_tools:-} \
                    ${extra_config_flags_gdb:-} "
 }
@@ -259,6 +260,7 @@ flag_enable_newlib_nano_check=0
 flag_enable_qemu=1
 flag_enable_mingw=0
 flag_morello=0
+host_arg=
 
 # All the check targets supported by this script.
 check_targets="check-binutils check-ld check-gas check-gcc check-g++ check-target-libatomic check-target-libstdc++-v3 check-gdb"
@@ -720,8 +722,7 @@ then
   fi
 fi
 
-case "${extra_config_flags_host_tools:-}" in
-*--host=*mingw*)
+case "${host:-}" in *mingw*)
   # MinGW builds are special case and are only used for toolchain official
   # releases. We do not redistribute QEMU. Newlib and Newlib-nano are off
   # as we build Newlib* libraries (if needed) in separate build passes.
@@ -738,11 +739,8 @@ case "${extra_config_flags_host_tools:-}" in
   ;;
 esac
 
-if [ $flag_enable_mingw -eq 0 ]; then
-  # For MinGW, --host is passed via $extra_config_flags_host_tools.
-  # FIXME: MinGW builds should really use this new --host option instead.
-  # Then we can remove this logic.
-  host_config_flag="--host=$host"
+if [ $flag_enable_mingw -eq 1 ]; then
+  host_arg="--host=$host"
 fi
 
 RUNTESTFLAGS="${target_board:+--target_board=$target_board} ${RUNTESTFLAGS:-}"
@@ -792,21 +790,21 @@ while true; do
   gmp)
     gmp_srcdir=$gmp_src
     gmp_objdir=$objdir/gmp
-    gmp_config="--disable-maintainer-mode --disable-shared --prefix=${host_tools_install} ${extra_config_flags_host_tools:-} ${host_config_flag:-}"
+    gmp_config="--disable-maintainer-mode --disable-shared --prefix=${host_tools_install} --host=${host} ${extra_config_flags_host_tools:-}"
     do_config_build_install gmp
     ;;
 
   mpfr)
     mpfr_srcdir=$mpfr_src
     mpfr_objdir=$objdir/mpfr
-    mpfr_config="--disable-maintainer-mode --disable-shared --prefix=${host_tools_install} ${hostgmp:+--with-gmp=$hostgmp} ${extra_config_flags_host_tools:-}"
+    mpfr_config="--disable-maintainer-mode --disable-shared --prefix=${host_tools_install} ${hostgmp:+--with-gmp=$hostgmp} ${host_arg:-} ${extra_config_flags_host_tools:-}"
     do_config_build_install mpfr
     ;;
 
   mpc)
     mpc_srcdir=$mpc_src
     mpc_objdir=$objdir/mpc
-    mpc_config="--disable-maintainer-mode --disable-shared --prefix=${host_tools_install} ${hostgmp:+--with-gmp=$hostgmp} ${hostmpfr:+--with-mpfr=$hostmpfr} ${extra_config_flags_host_tools:-}"
+    mpc_config="--disable-maintainer-mode --disable-shared --prefix=${host_tools_install} ${hostgmp:+--with-gmp=$hostgmp} ${hostmpfr:+--with-mpfr=$hostmpfr} ${host_arg:-} ${extra_config_flags_host_tools:-}"
     do_config_build_install mpc
     ;;
 
@@ -814,7 +812,7 @@ while true; do
     if [ -n "${hostisl:-}" ]; then
       isl_srcdir=$isl_src
       isl_objdir=$objdir/isl
-      isl_config="--disable-maintainer-mode --disable-shared --prefix=${host_tools_install} ${hostgmp:+--with-gmp-prefix=$hostgmp} ${extra_config_flags_host_tools:-}"
+      isl_config="--disable-maintainer-mode --disable-shared --prefix=${host_tools_install} ${hostgmp:+--with-gmp-prefix=$hostgmp} ${host_arg:-} ${extra_config_flags_host_tools:-}"
       do_config_build_install isl
     fi
     ;;
@@ -823,7 +821,7 @@ while true; do
     if [ -n "${hostcloog:-}" ]; then
       cloog_srcdir=$cloog_src
       cloog_objdir=$objdir/cloog
-      cloog_config="--disable-maintainer-mode --disable-shared --prefix=${host_tools_install} ${hostgmp:+--with-gmp-prefix=$hostgmp} ${hostisl:+--with-isl-prefix=$hostisl} ${extra_config_flags_host_tools:-}"
+      cloog_config="--disable-maintainer-mode --disable-shared --prefix=${host_tools_install} ${hostgmp:+--with-gmp-prefix=$hostgmp} ${hostisl:+--with-isl-prefix=$hostisl} ${host_arg:-} ${extra_config_flags_host_tools:-}"
       do_config_build_install cloog
     fi
     ;;
@@ -858,6 +856,7 @@ while true; do
       iconv_objdir="$objdir/iconv"
       iconv_config="--prefix=$hosticonv \
                     --disable-shared \
+                     ${host_arg:-} \
                      ${extra_config_flags_host_tools:-}"
       do_config_build_install iconv
     fi
@@ -897,6 +896,7 @@ while true; do
 			  --prefix=$prefix \
 			  ${bugurl:+--with-bugurl="\"$bugurl\""} \
 			  --with-sysroot=$prefix/$target \
+        ${host_arg:-} \
 			  ${extra_config_flags_host_tools:-} \
 			  ${extra_config_flags_binutils:-}"
 
@@ -936,6 +936,7 @@ while true; do
     libexpat_config="--prefix="$hostexpat" \
         --without-docbook \
         --without-xmlwf \
+        ${host_arg:-} \
         ${extra_config_flags_host_tools:-}"
     libexpat_build_targets="lib"
     libexpat_install_targets="install"
@@ -1167,6 +1168,7 @@ while true; do
 			${bugurl:+--with-bugurl="\"$bugurl\""} \
 			$libstdcxx_flags \
 			${extra_config_flags_gcc:-} \
+      ${host_arg:-} \
 			${extra_config_flags_host_tools:-}"
 
       gcc2_srcdir="$gcc_src"
