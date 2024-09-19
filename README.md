@@ -454,14 +454,16 @@ If you want to build Newlib to use with your mingw toolchain, follow the steps o
 
   ./build-gnu-toolchain.sh --target=aarch64-none-elf -- --builddir=/path-to-builddir/build-newlib-aarch64-none-elf --enable-binutils --enable-gcc --enable-gdb --no-check-gdb --enable-newlib --disable-qemu start-bootstrap-newlib
 
-3. After building Newlib, you need to integrate it into the existing Mingw toolchain. Use rsync to synchronize the necessary directories. Here are the commands:
+3. Install the Newlib libraries by specifying the build-mingw-aarch64-none-elf/install directory. Here is an example command:
 
-rsync -a ./build-newlib-aarch64-none-elf/install/aarch64-none-elf/include ./build-newlib-aarch64-none-elf/install-newlib/
-rsync -a ./build-newlib-aarch64-none-elf/install/aarch64-none-elf/lib ./build-newlib-aarch64-none-elf/install-newlib/
-rsync -a ./build-newlib-aarch64-none-elf/install/lib/gcc/aarch64-none-elf/13.3.1/ ./build-newlib-aarch64-none-elf/install-newlib/lib
+   ./build-gnu-toolchain.sh --target=aarch64-none-elf -- --builddir=/path-to-builddir/build-newlib-aarch64-none-elf --enable-binutils --enable-gcc --enable-gdb --no-check-gdb --enable-newlib --disable-qemu -x install-newlib --newlib-installdir=/path-to-builddir/build-mingw-aarch64-none-elf/install
 
-rsync -a ./build-newlib-aarch64-none-elf/install-newlib/include/ ./build-mingw-aarch64-none-elf/install/aarch64-none-elf/include/
-rsync -a ./build-newlib-aarch64-none-elf/install-newlib/lib/ ./build-mingw-aarch64-none-elf/install/lib/gcc/aarch64-none-elf/13.3.1/
+4. Finally, header files and libraries need copying into the existing Mingw toolchain. Use rsync to synchronize the necessary directories. Here are the commands:
+
+rsync -a ./build-newlib-aarch64-none-elf/install/aarch64-none-elf/include/ ./build-mingw-aarch64-none-elf/install/aarch64-none-elf/include/
+rsync -a ./build-newlib-aarch64-none-elf/install/aarch64-none-elf/lib/ ./build-mingw-aarch64-none-elf/install/lib/gcc/aarch64-none-elf/13.3.1/
+rsync -a ./build-newlib-aarch64-none-elf/install/lib/gcc/aarch64-none-elf/13.3.1/ ./build-mingw-aarch64-none-elf/install/lib/gcc/aarch64-none-elf/13.3.1/
+
 
 ### Known build issues
 
