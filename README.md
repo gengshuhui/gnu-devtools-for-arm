@@ -69,31 +69,31 @@ The following table shows the list of combinations that work for building the to
 
 
 ```
-| Toolchain [*]                                                                      |    Building   |
-| ---------------------------------------------------------------------------------- | ------------- |
-| Build                   | Host                    | Target                         |               |
-| ---------------------------------------------------------------------------------- | --------------|
-| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | aarch64-none-elf               |       x       |
-| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | MORELLO aarch64-none-elf       |       x       |
-| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | MORELLO aarch64-none-linux-gnu |       x       |
-| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | arm-none-eabi                  |       x       |
-| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | arm-none-linux-gnueabihf       |       x       |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64-none-elf               |       x       |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | MORELLO aarch64-none-elf       |       x       |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | MORELLO aarch64-none-linux-gnu |       x       |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64-none-linux-gnu         |       x       |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64_be-none-linux-gnu      |       x       |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | arm-none-eabi                  |       x       |
-| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | arm-none-linux-gnueabihf       |       x       |
-| macOS (x86_64)          | macOS (x86_64)          | aarch64-none-elf               |       x       |
-| macOS (x86_64)          | macOS (x86_64)          | arm-none-eabi                  |       x       |
-| macOS (Apple silicon)   | macOS (Apple silicon)   | aarch64-none-elf               |       x       |
-| macOS (Apple silicon)   | macOS (Apple silicon)   | arm-none-eabi                  |       x       |
-| x86_64-none-linux-gnu   | Windows (mingw, x86)    | aarch64-none-elf               | Not supported |
-| x86_64-none-linux-gnu   | Windows (mingw, x86)    | arm-none-eabi                  | Not supported |
-| x86_64-none-linux-gnu   | Windows (mingw, x86)    | arm-none-linux-gnueabihf       | Not supported |
-| x86_64-none-linux-gnu   | Windows (mingw, x86)    | aarch64-none-linux-gnu         | Not supported |
-| ---------------------------------------------------------------------------------- |---------------|
+| Toolchain [*]                                                                      |
+| ---------------------------------------------------------------------------------- |
+| Build                   | Host                    | Target                         |
+| ---------------------------------------------------------------------------------- |
+| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | aarch64-none-elf               |
+| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | MORELLO aarch64-none-elf       |
+| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | MORELLO aarch64-none-linux-gnu |
+| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | arm-none-eabi                  |
+| aarch64-none-linux-gnu  | aarch64-none-linux-gnu  | arm-none-linux-gnueabihf       |
+| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64-none-elf               |
+| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | MORELLO aarch64-none-elf       |
+| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | MORELLO aarch64-none-linux-gnu |
+| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64-none-linux-gnu         |
+| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | aarch64_be-none-linux-gnu      |
+| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | arm-none-eabi                  |
+| x86_64-none-linux-gnu   | x86_64-none-linux-gnu   | arm-none-linux-gnueabihf       |
+| macOS (x86_64)          | macOS (x86_64)          | aarch64-none-elf               |
+| macOS (x86_64)          | macOS (x86_64)          | arm-none-eabi                  |
+| macOS (Apple silicon)   | macOS (Apple silicon)   | aarch64-none-elf               |
+| macOS (Apple silicon)   | macOS (Apple silicon)   | arm-none-eabi                  |
+| x86_64-none-linux-gnu   | Windows (mingw, x86)    | aarch64-none-elf               |
+| x86_64-none-linux-gnu   | Windows (mingw, x86)    | arm-none-eabi                  |
+| x86_64-none-linux-gnu   | Windows (mingw, x86)    | arm-none-linux-gnueabihf       |
+| x86_64-none-linux-gnu   | Windows (mingw, x86)    | aarch64-none-linux-gnu         |
+| ---------------------------------------------------------------------------------- |
 ```
 
 [*] This list of toolchains is the full list of currently released Arm GNU Toolchain variants. Other build-host-target combinations are not supported by these scripts (Contributions welcome!).
