@@ -205,6 +205,34 @@ stages=()
 
 cwd=`pwd`
 
+set_gdb_config()
+{
+    # GDB now requires mpfr [1] and prefix is required when using --with-gmp and --with-mpfr options.
+    # We still want to keep the previous config flags --with-libgmp-prefix, --with-libgmp-type, --with-libmpfr-type, and --with-libmpfr-prefix
+    # so that previous versions of GDB can still build.
+    # [1] See commit 991180627851801f1999d1ebbc0e569a17e47c74 from  binutils-gdb--gdb: Use toplevel configure for GMP and MPFR for gdb.
+    # https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=991180627851801f1999d1ebbc0e569a17e47c74
+
+    gdb_config="${binutils_config_flags:-} \
+                   --disable-binutils \
+                   --disable-sim \
+                   --disable-as \
+                   --disable-ld \
+                   --enable-plugins \
+                   --target=$target \
+                   --prefix=$prefix \
+                   ${bugurl:+--with-bugurl="\"$bugurl\""} \
+                   ${hostmpfr:+--with-libmpfr-prefix=$hostmpfr} \
+                   ${hostmpfr:+--with-libmpfr-type=static} \
+                   ${hostmpfr:+--with-mpfr=$hostmpfr} \
+                   ${hostgmp:+--with-libgmp-prefix=$hostgmp} \
+                   ${hostgmp:+--with-libgmp-type=static} \
+                   ${hostgmp:+--with-gmp=$hostgmp} \
+                   ${extra_config_flags_binutils:-} \
+                   ${extra_config_flags_host_tools:-} \
+                   ${extra_config_flags_gdb:-} "
+}
+
 ## The layout version for the binary tar ball we create.  This should be stepped
 ## each time we change the structure of the delivered tar ball.
 layout_version="2"
@@ -495,21 +523,16 @@ build_flags_path="$installdir$prefix/.build_flags"
 # Install dir for host tools.
 host_tools_install=$builddir/host-tools
 
-# Skipping dejagnu checks as testing not yet implemented
-# Set vars to prevent errors
-dejagnu_src=
-dejagnu_site=
-
 # dejagnu site.exp
-# dejagnu_site="${dejagnu_site:-site-exhaustive-fastmodels.exp}"
+dejagnu_site="${dejagnu_site:-site-exhaustive-fastmodels.exp}"
 
-# if [ -z "${dejagnu_src:-}" ]; then
-#  ## dejagnu is awkward we should find it in the gnu-devtools-for-arm component
-#  find_component_or_error "$srcdir/gnu-devtools-for-arm" dejagnu
-# fi
-# ##Set the DEJAGNU environment variable for check targets
-#set_env_var DEJAGNU "$dejagnu_src/$dejagnu_site"
-#check_if_readable $DEJAGNU
+if [ -z "${dejagnu_src:-}" ]; then
+  # The dejagnu directory should be available in gnu-devtools-for-arm
+  find_component_or_error "$srcdir/gnu-devtools-for-arm" dejagnu
+fi
+#Set the DEJAGNU environment variable for check targets
+set_env_var DEJAGNU "$dejagnu_src/$dejagnu_site"
+check_if_readable $DEJAGNU
 
 #libstdcxx_flags=--disable-wchar_t
 libstdcxx_flags=
@@ -704,7 +727,7 @@ case "${extra_config_flags_host_tools:-}" in
   # Default linking behavior of GDB changed. It was static linking by
   # default. Now it has to be explicitly enabled with
   # --with-static-standard-libraries flag
-  gdb_config_flags="--disable-source-highlight --with-static-standard-libraries"
+  extra_config_flags_gdb="--disable-source-highlight --with-static-standard-libraries"
   ;;
 esac
 
@@ -749,7 +772,7 @@ while true; do
 
   start-bootstrap-newlib)
     mk_bin_dirs $prefix
-    push_stages gmp mpfr mpc isl cloog iconv binutils gdb gcc1 newlib newlib-nano gcc2 gcc2-nano
+    push_stages gmp mpfr mpc isl cloog iconv binutils gdb gcc1 newlib newlib-nano gcc2 gcc2-nano copy_newlib_build_flags
     ;;
 
   start)
@@ -890,7 +913,7 @@ while true; do
       if [ -d "$srcdir/libexpat" ]; then
           # With libexpat component present add libexpat to GDB configuration
           # Static link libexpat
-          gdb_config_flags="${gdb_config_flags:-} --with-expat --with-libexpat-prefix=$hostexpat --with-libexpat-type=static"
+          extra_config_flags_gdb="${extra_config_flags_gdb:-} --with-expat --with-libexpat-prefix=$hostexpat --with-libexpat-type=static"
           push_stages "libexpat" "main-gdb"
       else
           push_stages "main-gdb"
@@ -920,43 +943,50 @@ while true; do
     gdb_install_targets="install-gdb install-html-gdb"
     gdb_destdir="${installdir}"
 
-    gdb_config_flags="${gdb_config_flags:-} --with-python=${gdb_with_python:-no}"
+    set_gdb_config
+    gdb_config="${gdb_config:-} --with-python=no"
 
-    # GDB now requires mpfr [1] and prefix is required when using --with-gmp and --with-mpfr options.
-    # We still want to keep the previous config flags --with-libgmp-prefix, --with-libgmp-type, --with-libmpfr-type, and --with-libmpfr-prefix
-    # so that previous versions of GDB can still build.
-    # [1] See commit 991180627851801f1999d1ebbc0e569a17e47c74 from  binutils-gdb--gdb: Use toplevel configure for GMP and MPFR for gdb.
-    # https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=991180627851801f1999d1ebbc0e569a17e47c74
-    gdb_config="${binutils_config_flags:-} \
-                   ${gdb_config_flags:-} \
-                   --disable-binutils \
-                   --disable-sim \
-                   --disable-as \
-                   --disable-ld \
-                   --enable-plugins \
-                   --target=$target \
-                   --prefix=$prefix \
-                   ${bugurl:+--with-bugurl="\"$bugurl\""} \
-                   ${hostmpfr:+--with-libmpfr-prefix=$hostmpfr} \
-                   ${hostmpfr:+--with-libmpfr-type=static} \
-                   ${hostmpfr:+--with-mpfr=$hostmpfr} \
-                   ${hostgmp:+--with-libgmp-prefix=$hostgmp} \
-                   ${hostgmp:+--with-libgmp-type=static} \
-                   ${hostgmp:+--with-gmp=$hostgmp} \
-                   ${extra_config_flags_host_tools:-} \
-                   ${extra_config_flags_binutils:-}"
     do_config_build_install gdb
     if [ $flag_enable_newlib_nano -eq 1 ]; then
       gdb_destdir=${nano_installdir}
       do_install gdb
     fi
+
+    if [ ${gdb_with_python:-no} = "yes" ]; then
+        push_stages "gdb-python"
+    fi
+    ;;
+
+  gdb-python)
+    gdb_python_srcdir="$gdb_src"
+    gdb_python_objdir="$objdir/gdb_python"
+    gdb_python_cflags="$cflags"
+    gdb_python_cxxflags="$cflags"
+
+    set_gdb_config
+    gdb_python_config="${gdb_config:-} --with-python=yes --program-prefix=$target- --program-suffix=-py"
+    gdb_python_build_targets="all-gdb"
+    gdb_python_install_targets="install-gdb"
+    gdb_python_destdir="${installdir}"
+    do_config_build_install gdb_python
+    if [ $flag_enable_newlib_nano -eq 1 ]; then
+      gdb_destdir=${nano_installdir}
+      do_install gdb_python
+    fi
     ;;
 
   gcc1)
     if [ $flag_enable_gcc -eq 1 ]; then
-
       if [ $flag_enable_mingw -eq 1 ]; then
-	extra_config_flags_gcc="${extra_config_flags_gcc:-} --with-libiconv-prefix=$hosticonv"
+        extra_config_flags_gcc="${extra_config_flags_gcc:-} --with-libiconv-prefix=$hosticonv"
+        host_config_options=
+      else
+        host_config_options="\
+          ${hostgmp:+--with-gmp=$hostgmp} \
+          ${hostmpfr:+--with-mpfr=$hostmpfr} \
+          ${hostmpc:+--with-mpc=$hostmpc} \
+          ${hostcloog:+--with-cloog=$hostcloog} \
+          ${hostisl:+--with-isl=$hostisl}"
       fi
       gcc1_srcdir=$gcc_src
       gcc1_objdir=$objdir/gcc1
@@ -978,13 +1008,9 @@ while true; do
       # gcc2 and pass an absolute path in prefix.
       # Because we supply the absolute path for $prefix here, we don't need
       # a DESTDIR to be set for the install stage.
-      gcc1_config="--target=$target \
+      gcc1_config="$host_config_options \
+          --target=$target \
 		      --prefix=$installdir \
-		      ${hostgmp:+--with-gmp=$hostgmp} \
-		      ${hostmpfr:+--with-mpfr=$hostmpfr} \
-		      ${hostmpc:+--with-mpc=$hostmpc} \
-		      ${hostcloog:+--with-cloog=$hostcloog} \
-		      ${hostisl:+--with-isl=$hostisl} \
 		      --disable-shared \
 		      --disable-nls \
 		      --disable-threads \
@@ -1090,7 +1116,7 @@ while true; do
   gcc2)
     if [ $flag_enable_gcc -eq 1 ]; then
       if [ $flag_enable_mingw -eq 1 ]; then
-	extra_config_flags_gcc="${extra_config_flags_gcc:-} --with-libiconv-prefix=$hosticonv"
+	extra_config_flags_gcc="${extra_config_flags_gcc:-} --with-libiconv-prefix=$hosticonv --enable-mingw-wildcard"
       fi
       # gcc2 has to be configured with the absolute install path in $prefix
       # as it uses $prefix to search for headers etc while configuring
@@ -1199,6 +1225,27 @@ while true; do
     fi
     ;;
 
+  copy_newlib_build_flags)
+    # Mingw release pipeline uses .build_flags file from build-mingw-arm-none-eabi tar file to create the manifest file.
+    # To populate the missing gcc2_nano_configure, newlib_nano_configure, newlib_configure build flags in arm-none-eabi-manifest.txt
+    # for the windows arm-none-eabi toolchain build, we are extracting and appending build flags from newlib build as a workround
+    newlib_build_flags_path="$newlib_installdir$prefix/.build_flags"
+    base_installdir=$(dirname $(dirname "$installdir"))
+    mingw_dir=$(find "$base_installdir" -type d -name "*-mingw-*" -print -quit)
+    if [ -n "$mingw_dir" ]; then
+        mingw_build_flags_path="$mingw_dir/install/.build_flags"
+        if [ -f "$mingw_build_flags_path" ]; then
+            newlib_flags=$(cat $newlib_build_flags_path)
+            flags=$(echo "$newlib_flags" | grep -E '^(gcc2_nano_configure=|newlib_nano_configure=|newlib_configure=)')
+            echo "$flags" >> "$mingw_build_flags_path"
+        else
+            echo "Mingw .build_flags file does not exist in $mingw_dir/install"
+        fi
+    else
+        echo "Directory matching '*-mingw-*' not found."
+    fi
+    ;;
+
   perms)
     if [ $package_flag -eq 1 ]; then
       perms_dir="$installdir$prefix"
@@ -1245,7 +1292,6 @@ while true; do
     ;;
 
   check)
-    printf "warning: scripts don't currently support test features.\n" >&2
     if [ $flag_enable_newlib_nano -eq 1 ]; then
       if [ $flag_enable_newlib_nano_check -eq 1 ]; then
         check_targets="$check_targets $check_nano_targets"
@@ -1293,14 +1339,14 @@ while true; do
         ;;
 
       aarch64_be-*-elf | aarch64_be*-elf)
-        default_target_board="aarch64_be-elf-qemu"
+        default_target_board="aarch64-elf-qemu"
         # LOOK! We don't run this anymore! It is too
         # unreliable and needs properly debugging.
         flag_check_gdb=0
         ;;
 
       arm*-*-eabi | arm*-eabi)
-        default_target_board="arm-eabi-qemu-ar-class.exp"
+        default_target_board="arm-eabi-qemu-ar-class"
 
         # LOOK! We don't run this for arm-none-eabi anymore! It is too
         # unreliable and needs properly debugging.

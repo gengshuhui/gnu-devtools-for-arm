@@ -18,7 +18,11 @@ PS4='+$(date +%Y-%m-%d:%H:%M:%S) (${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FU
 
 execdir=`pwd`
 execdir=`cd "$execdir"; pwd`
-script_dir=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    script_dir=$(dirname $(greadlink -f "${BASH_SOURCE[0]}"))
+else
+    script_dir=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
+fi
 if [ ! -f "$script_dir/utilities.sh" ]; then
   echo "error:Could not find helper script at $script_dir/utilities.sh"
   exit 1
@@ -310,6 +314,12 @@ srcdir="$buildroot/src"
 if [ -z "${targets:-}" ]; then
   targets=$all_targets_nonmorello
 fi
+
+target_count=$(echo $targets | wc -w)
+if [ "$target_count" -gt 1 ]; then
+    printf "warning: You have specified multiple targets, and therefore if the specified arguments are invalid for a target, that target build will fail.\n"
+fi
+
 for target in $targets
 do
   builddir="$buildroot/build-$target"
@@ -418,21 +428,23 @@ do
   esac
 
   # Set GCC multilib-list configuration flag
-  extra_multilib="--config-flags-gcc=--with-multilib-list="
-  if [ $flag_enable_aprofile -eq 1 ]; then
-    extra_multilib="${extra_multilib}aprofile"
-  fi
-
-  if [ $flag_enable_rmprofile -eq 1 ]; then
-    if [[ $extra_multilib == *profile ]]; then
-      # --with-multilib-list=aprofile,rmprofile
-      extra_multilib="${extra_multilib},"
+  if [ $flag_disable_multilib -eq 0 ]; then
+    extra_multilib="--config-flags-gcc=--with-multilib-list="
+    if [ $flag_enable_aprofile -eq 1 ]; then
+      extra_multilib="${extra_multilib}aprofile"
     fi
-    extra_multilib="${extra_multilib}rmprofile"
-  fi
-  # Only inject with-multilib-list with profile if flag was explicitly set
-  if [[ $extra_multilib == *profile ]]; then
-    extraflags="$extraflags $extra_multilib"
+
+    if [ $flag_enable_rmprofile -eq 1 ]; then
+      if [[ $extra_multilib == *profile ]]; then
+        # --with-multilib-list=aprofile,rmprofile
+        extra_multilib="${extra_multilib},"
+      fi
+      extra_multilib="${extra_multilib}rmprofile"
+    fi
+    # Only inject with-multilib-list with profile if flag was explicitly set
+    if [[ $extra_multilib == *profile ]]; then
+      extraflags="$extraflags $extra_multilib"
+    fi
   fi
 
   case $target in aarch64*-linux-gnu_ilp32)
