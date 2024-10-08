@@ -778,8 +778,11 @@ while true; do
   start)
     mk_bin_dirs $prefix
     write_build_status > build.status
-
-    push_stages gmp mpfr mpc isl cloog qemu iconv binutils gdb gcc1 newlib newlib-nano gcc2 gcc2-nano perms
+    all_stages="gmp mpfr mpc isl cloog qemu iconv binutils gdb gcc1 newlib newlib-nano gcc2 gcc2-nano perms"
+    if [ $flag_enable_mingw -eq 1 ]; then
+      all_stages+=" build-newlib"
+    fi
+    push_stages $all_stages
     ;;
 
   gmp)
@@ -1289,6 +1292,9 @@ while true; do
 	fi
       fi
     fi
+    ;;
+  build-newlib)
+    $script_dir/build-newlib.sh $target $builddir $srcdir $script_dir
     ;;
 
   check)
