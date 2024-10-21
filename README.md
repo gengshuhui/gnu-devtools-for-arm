@@ -230,7 +230,7 @@ The content needs to be placed into the ./src folder, such that the ./src folder
   └───<etc>
 ```
 
-Note 1: This Source Code package does not contain the source code for QEMU, because QEMU does not form part of the Arm GNU Toolchain release. If tests using QEMU are required, the QEMU source code needs to be fetched and placed in `./src/qemu` (e.g. `git clone https://gitlab.com/qemu-project/qemu.git ./src/qemu`)
+Note 1: This Source Code package does not contain the source code for QEMU, because QEMU does not form part of the Arm GNU Toolchain release. If tests using QEMU are required, the QEMU source code needs to be fetched and placed in `./src/qemu` (e.g. `git clone https://gitlab.com/qemu-project/qemu.git ./src/qemu`). You might need additional packages to build and use the latest version of Qemu.
 
 Note 2: The build scripts contain legacy code for supporting minor components cloog and libffi. This is not currently used by our standard build processes, hence why they have not been documented in these instructions.
 
