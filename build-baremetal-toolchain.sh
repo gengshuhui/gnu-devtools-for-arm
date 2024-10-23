@@ -1119,7 +1119,11 @@ while true; do
   gcc2)
     if [ $flag_enable_gcc -eq 1 ]; then
       if [ $flag_enable_mingw -eq 1 ]; then
-	extra_config_flags_gcc="${extra_config_flags_gcc:-} --with-libiconv-prefix=$hosticonv --enable-mingw-wildcard"
+        extra_config_flags_gcc="${extra_config_flags_gcc:-} --with-libiconv-prefix=$hosticonv --enable-mingw-wildcard"
+      fi
+      if [[ $host_is_darwin -eq 0 ]]; then
+        # ensure static linking in the specified phases
+        extra_config_flags_gcc="${extra_config_flags_gcc:-} --with-boot-ldflags=-static --with-stage1-ldflags=-static --disable-shared-host"
       fi
       # gcc2 has to be configured with the absolute install path in $prefix
       # as it uses $prefix to search for headers etc while configuring
@@ -1132,7 +1136,7 @@ while true; do
 			${hostmpfr:+--with-mpfr=$hostmpfr} \
 			${hostmpc:+--with-mpc=$hostmpc} \
 			${hostcloog:+--with-cloog=$hostcloog} \
-			${hostisl:+--with-isl=$hostisl}\
+			${hostisl:+--with-isl=$hostisl} \
 			--disable-shared \
 			--disable-nls \
 			--disable-threads \

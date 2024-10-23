@@ -1192,6 +1192,10 @@ EOF
     ;;
 
   gcc2)
+    if [[ $host_is_darwin -eq 0 ]]; then
+      # ensure static linking in the specified phases
+      extra_config_flags_gcc="${extra_config_flags_gcc:-} --with-boot-ldflags=-static --with-stage1-ldflags=-static --disable-shared-host"
+    fi
     gcc2_srcdir="$gcc_src"
     gcc2_objdir="$objdir/gcc2"
     gcc2_cflags="$cflags"
