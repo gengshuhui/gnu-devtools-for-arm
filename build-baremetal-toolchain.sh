@@ -258,12 +258,13 @@ flag_enable_newlib_nano_check=0
 flag_enable_qemu=1
 flag_enable_mingw=0
 flag_morello=0
+flag_build_newlib=0
 
 # All the check targets supported by this script.
 check_targets="check-binutils check-ld check-gas check-gcc check-g++ check-target-libatomic check-target-libstdc++-v3 check-gdb"
 check_nano_targets="check-gcc-nano check-g++-nano check-target-libstdc++-v3-nano"
 # Parse command-line options
-args=$(getopt -ohj:l:x -l bugurl:,builddir:,config-flags-binutils:,config-flags-gcc:,config-flags-host-tools:,config-flags-qemu:,debug,debug-target,dejagnu-site:,dejagnu-src:,enable-gdb,enable-gdb-with-python:,disable-gdb,enable-gcc,disable-gcc,enable-binutils,disable-binutils,enable-newlib,disable-newlib,enable-maintainer-mode,disable-maintainer-mode,enable-newlib-nano,disable-newlib-nano,enable-newlib-nano-check,disable-newlib-nano-check,enable-qemu,disable-qemu,help,host-toolchain-path:,ldflags-for-target:,ldflags-for-nano-target:,newlib-installdir:,package,no-package,qemu-test-path:,release,no-release,resultdir:,srcdir:,tag:,tardir:,target:,target-board:,timestamp:,with-language:,check-gdb,no-check-gdb,morello,host: -n $(basename "$0") -- "$@")
+args=$(getopt -ohj:l:x -l bugurl:,build-newlib,builddir:,config-flags-binutils:,config-flags-gcc:,config-flags-host-tools:,config-flags-qemu:,debug,debug-target,dejagnu-site:,dejagnu-src:,enable-gdb,enable-gdb-with-python:,disable-gdb,enable-gcc,disable-gcc,enable-binutils,disable-binutils,enable-newlib,disable-newlib,enable-maintainer-mode,disable-maintainer-mode,enable-newlib-nano,disable-newlib-nano,enable-newlib-nano-check,disable-newlib-nano-check,enable-qemu,disable-qemu,help,host-toolchain-path:,ldflags-for-target:,ldflags-for-nano-target:,newlib-installdir:,package,no-package,qemu-test-path:,release,no-release,resultdir:,srcdir:,tag:,tardir:,target:,target-board:,timestamp:,with-language:,check-gdb,no-check-gdb,morello,host: -n $(basename "$0") -- "$@")
 eval set -- "$args"
 while [ $# -gt 0 ]; do
   if [ -n "${opt_prev:-}" ]; then
@@ -280,6 +281,9 @@ while [ $# -gt 0 ]; do
   case $1 in
   --bugurl)
     opt_prev=bugurl
+    ;;
+  --build-newlib)
+    flag_build_newlib=1
     ;;
   --builddir)
     opt_prev=builddir
@@ -779,7 +783,7 @@ while true; do
     mk_bin_dirs $prefix
     write_build_status > build.status
     all_stages="gmp mpfr mpc isl cloog qemu iconv binutils gdb gcc1 newlib newlib-nano gcc2 gcc2-nano perms"
-    if [ $flag_enable_mingw -eq 1 ]; then
+    if [ $flag_enable_mingw -eq 1 ] && [ $flag_build_newlib  -eq 1 ]; then
       all_stages+=" build-newlib"
     fi
     push_stages $all_stages
