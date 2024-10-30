@@ -882,7 +882,7 @@ while true; do
   binutils)
     binutils_srcdir=$binutils_src
     binutils_objdir=$objdir/binutils
-
+    extra_config_flags_binutils="${extra_config_flags_binutils:-} --without-debuginfod"
     if [ $flag_enable_mingw -eq 1 ]; then
       extra_config_flags_binutils="${extra_config_flags_binutils:-} --disable-werror"
     fi
@@ -928,6 +928,7 @@ while true; do
 
   gdb)
     if [ $flag_enable_gdb -eq 1 ]; then
+      extra_config_flags_gdb="${extra_config_flags_gdb:-} --without-debuginfod"
       if [ -d "$srcdir/libexpat" ]; then
         # With libexpat component present add libexpat to GDB configuration
         extra_config_flags_gdb="${extra_config_flags_gdb:-} --with-expat --with-libexpat-prefix=${host_tools_install} --with-libexpat-type=static"
@@ -1192,10 +1193,6 @@ EOF
     ;;
 
   gcc2)
-    if [[ $host_is_darwin -eq 0 ]]; then
-      # ensure static linking in the specified phases
-      extra_config_flags_gcc="${extra_config_flags_gcc:-} --with-boot-ldflags=-static --with-stage1-ldflags=-static --disable-shared-host"
-    fi
     gcc2_srcdir="$gcc_src"
     gcc2_objdir="$objdir/gcc2"
     gcc2_cflags="$cflags"
