@@ -42,7 +42,7 @@ case "$target_triplet" in {
           set target_list $standard_arm_eabi_target_libs_list
         }
         default {
-          set target_list $standard_arm_eabi_target_libs_list
+          set target_list $standard_arm_eabi_target_list
         }
       }
     } else {
@@ -92,7 +92,7 @@ case "$target_triplet" in {
           set target_list $standard_aarch64_elf_target_libs_list
         }
         default {
-          set target_list $standard_aarch64_elf_target_libs_list
+          set target_list $standard_aarch64_elf_target_list
         }
       }
     } else {

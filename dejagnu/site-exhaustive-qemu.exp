@@ -55,7 +55,9 @@ set arm_binutils_list  [ list "arm-eabi-qemu-ar-class{-mcpu=cortex-a5}"  \
 
 set arm_gdb_list [list "arm-eabi-qemu-ar-class{-mcpu=cortex-a9/-mfpu=neon/-mfloat-abi=softfp}"]
 
-set aarch64_binutils_list  [ list "aarch64-elf-qemu{-mcpu=cortex-a53}" ]
+set aarch64_binutils_list  [list "aarch64-elf-qemu{-mcmodel=small}" \
+				 "aarch64-elf-qemu{-mcmodel=tiny}" \
+				 ]
 set aarch64_gdb_list [list "aarch64-elf-qemu{-mcpu=cortex-a53}"]
 
 source "[ file dirname [ file normalize [ info script ] ] ]/site-expand-list.exp"
