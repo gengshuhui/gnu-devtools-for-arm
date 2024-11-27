@@ -1,4 +1,4 @@
-# Overridding some dejagnu internal procedures.
+# Overriding some dejagnu internal procedures.
 
 # See prune_warnings and default_target_compile in 
 # $DEJAGNU_INSTALL/share/target.exp and local_exec and standard_wait in
@@ -36,7 +36,7 @@
 
 # The only time when this needs to be reviewed is whenever we migrate
 # upwards on a version of dejagnu or find a usecase that we can't handle
-# easily enough. Otherwise this appears to be the best bet today :(. I
+# easily enough. Otherwise this appears to be the best bet today. I
 # don't particularly like having to do this but this is the least
 # invasive and the change that possibly is with the lowest risk.
 
@@ -59,6 +59,10 @@ proc prune_warnings { text } {
     # Ignore these.
     regsub -all "(^|\n)\[^\n\]*linker input file unused since linking not done" $text "" text
     regsub -all "(^|\n)\[^\n\]*file path prefix \[^\n\]* never used" $text "" text
+
+    # This happens when testing across NFS.
+    regsub -all "(^|\n)((NFS|nfs) server \[^\n\]* not responding\[^\n\]*\n?)+" $text "\\1" text
+    regsub -all "(^|\n)((NFS|nfs) server \[^\n\]* (ok|is alive again)\[^\n\]*\n?)+" $text "\\1" text
 
     # GNU ld warns about functions marked as dangerous in GNU libc.
     regsub -all "(^|\n)\[^\n\]*: In function\[^\n\]*\n\[^\n\]\[^\n\]*is dangerous\[^\n\]*" $text "" text
@@ -148,7 +152,7 @@ proc local_exec { commandline inp outp timeout } {
     # We want to use spawn in most cases, because tcl's pipe mechanism
     # doesn't assign process groups correctly and we can't reliably kill
     # programs that bear children. We can't use tcl's exec because it has
-    # no way to timeout programs that hang. *sigh*
+    # no way to timeout programs that hang.
     #
     # The expect command will close the connection when it sees
     # EOF. Closing the connection may send SIGHUP to the child and
@@ -174,7 +178,7 @@ proc local_exec { commandline inp outp timeout } {
 	}
 
 	set use_tee 0
-	# We add |& cat so that Tcl exec doesn't freak out if the
+	# We add |& cat so that Tcl exec doesn't misbehave if the
 	# program writes to stderr.
 	if { $outp == "" } {
 	    set outp "|& cat"
@@ -232,7 +236,7 @@ proc local_exec { commandline inp outp timeout } {
 	}
     }
 
-    # If we didn't get an EOF, we have to kill the poor defenseless program.
+    # If we didn't get an EOF, we have to kill the program.
     # However, Tcl has no kill primitive, so we have to execute an external
     # command in order to kill the execution.
     if { ! $got_eof } {

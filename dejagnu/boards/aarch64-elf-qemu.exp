@@ -25,7 +25,7 @@ case "$target_triplet" in {
     }
 }
 set_board_info is_simulator 1
-set_board_info sim,options "-cpu any"
+set_board_info sim,options "-cpu max"
 
 # Used by a few gcc.c-torture testcases to delimit how large the stack can
 # be.

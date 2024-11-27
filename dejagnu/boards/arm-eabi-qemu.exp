@@ -58,7 +58,7 @@ set_board_info is_simulator 1
 
 # should be a useful comment here
 set_board_info gdb,skip_huge_test 1
-set_board_info sim,options "-cpu any"
+set_board_info sim,options "-cpu max"
 
 # Used by a few gcc.c-torture testcases to delimit how large the stack can
 # be.
