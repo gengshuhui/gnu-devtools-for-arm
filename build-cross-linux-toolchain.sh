@@ -1193,6 +1193,14 @@ EOF
     ;;
 
   gcc2)
+    if [ $flag_enable_mingw -eq 1 ]; then
+      gcc2_host_config_options=
+    else
+      gcc2_host_config_options="\
+        ${hostgmp:+--with-gmp=$hostgmp} \
+        ${hostmpfr:+--with-mpfr=$hostmpfr} \
+        ${hostmpc:+--with-mpc=$hostmpc}"
+    fi
     gcc2_srcdir="$gcc_src"
     gcc2_objdir="$objdir/gcc2"
     gcc2_cflags="$cflags"
@@ -1212,9 +1220,7 @@ EOF
            --disable-libquadmath \
            --enable-checking=$flag_check_bootstrap \
            --enable-languages=c \
-           ${hostgmp:+--with-gmp=$hostgmp} \
-           ${hostmpfr:+--with-mpfr=$hostmpfr} \
-           ${hostmpc:+--with-mpc=$hostmpc} \
+           ${gcc2_host_config_options} \
            ${extra_config_flags_gcc:-}"
     gcc2_destdir="$installdir"
     do_config_build_install gcc2
@@ -1345,6 +1351,16 @@ EOF
     ;;
 
   gcc4 | gcc4-chain)
+    if [ $flag_enable_mingw -eq 1 ]; then
+      gcc4_host_config_options=
+    else
+      gcc4_host_config_options="\
+         ${hostgmp:+--with-gmp=$hostgmp} \
+         ${hostmpfr:+--with-mpfr=$hostmpfr} \
+         ${hostmpc:+--with-mpc=$hostmpc} \
+         ${hostisl:+--with-isl=$hostisl} \
+         ${hostcloog:+--with-cloog=$hostcloog}"
+    fi
     gcc4_srcdir=$gcc_src
     gcc4_objdir=$objdir/gcc4
     gcc4_cflags="$cflags"
@@ -1360,11 +1376,7 @@ EOF
             --disable-libmudflap \
             --enable-checking=$flag_check_bootstrap \
             --enable-languages=$languages \
-            ${hostgmp:+--with-gmp=$hostgmp} \
-            ${hostmpfr:+--with-mpfr=$hostmpfr} \
-            ${hostmpc:+--with-mpc=$hostmpc} \
-            ${hostisl:+--with-isl=$hostisl} \
-            ${hostcloog:+--with-cloog=$hostcloog} \
+            ${gcc4_host_config_options} \
             ${extra_config_flags_gcc:-}"
     do_config gcc4
     do_make gcc4
