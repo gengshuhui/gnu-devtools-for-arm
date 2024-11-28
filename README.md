@@ -436,34 +436,22 @@ These are steps required to build both 32-bit and 64-bit Mingw toolchains
 
 2. Before building the Mingw toolchain, you need to build the equivalent Linux toolchain for the desired target architecture. This step will ensure that all necessary binaries are available to build the target libraries, like libgcc and libc, when building the final mingw hosted toolchain. You can build this toolchain using the provided build script. e.g:
 
-  ./build-gnu-toolchain.sh --target=aarch64-none-elf
+  build-gnu-toolchain.sh --target=aarch64-none-elf
 
 3. Now, build the Mingw toolchain. Make sure to pass the bin directory containing the binaries of the previously built Linux toolchain using the --host-toolchain-path option. Specify the appropriate --host argument for Mingw via --config-flags-host-tools. Use i686-w64-mingw32 for 32-bit builds and x86_64-w64-mingw32 for 64-bit builds. Here is an example command:
 
-  ./build-gnu-toolchain.sh --target=aarch64-none-elf -- --builddir=/path-to-builddir/build-mingw-aarch64-none-elf  --config-flags-host-tools=--host=x86_64-w64-mingw32 --host-toolchain-path=/path-to-toolchain/aarch64-none-elf/install/bin
+  build-gnu-toolchain.sh --target=aarch64-none-elf -- --builddir=/path-to-builddir/build-mingw-aarch64-none-elf  --config-flags-host-tools=--host=x86_64-w64-mingw32 --host-toolchain-path=/path-to-toolchain/aarch64-none-elf/install/bin
 
 Building Newlib
 
-If you want to build Newlib to use with your mingw toolchain, follow the steps outlined below, specifying the start-bootstrap-newlib stage as needed.
+To build Newlib for integration with the MinGW toolchain, use the build-newlib-for-mingw-toolchain.sh script provided. This script will create a Newlib build directory within the same location as the MinGW toolchain. It calls the build-baremetal-toolchain.sh script with the appropriate arguments and, upon completion, copies the header files and libraries into the existing MinGW toolchain.
+You must specify the build directory of the MinGW toolchain created in the previous step and ensure the same target architecture is used. Here is an example.
 
-1. Create a build directory e.g build-newlib-aarch64-none-elf
+  build-newlib-for-mingw-toolchain.sh --target=aarch64-none-elf --builddir=/path-to-builddir/build-mingw-aarch64-none-elf
 
-  mkdir -p build-newlib-aarch64-none-elf
+Additionally, any other desired parameters can be passed to the downstream build scripts via -- for example.
 
-2. Build the Newlib toolchain for the desired target architecture. Make sure to specify the start-bootstrap-newlib stage. Here is an example command:
-
-  ./build-gnu-toolchain.sh --target=aarch64-none-elf -- --builddir=/path-to-builddir/build-newlib-aarch64-none-elf --enable-binutils --enable-gcc --enable-gdb --no-check-gdb --enable-newlib --disable-qemu start-bootstrap-newlib
-
-3. Install the Newlib libraries by specifying the build-mingw-aarch64-none-elf/install directory. Here is an example command:
-
-   ./build-gnu-toolchain.sh --target=aarch64-none-elf -- --builddir=/path-to-builddir/build-newlib-aarch64-none-elf --enable-binutils --enable-gcc --enable-gdb --no-check-gdb --enable-newlib --disable-qemu -x install-newlib --newlib-installdir=/path-to-builddir/build-mingw-aarch64-none-elf/install
-
-4. Finally, header files and libraries need copying into the existing Mingw toolchain. Use rsync to synchronize the necessary directories. Here are the commands:
-
-rsync -a ./build-newlib-aarch64-none-elf/install/aarch64-none-elf/include/ ./build-mingw-aarch64-none-elf/install/aarch64-none-elf/include/
-rsync -a ./build-newlib-aarch64-none-elf/install/aarch64-none-elf/lib/ ./build-mingw-aarch64-none-elf/install/lib/gcc/aarch64-none-elf/13.3.1/
-rsync -a ./build-newlib-aarch64-none-elf/install/lib/gcc/aarch64-none-elf/13.3.1/ ./build-mingw-aarch64-none-elf/install/lib/gcc/aarch64-none-elf/13.3.1/
-
+  build-newlib-for-mingw-toolchain.sh --target=arm-none-eabi --builddir=/path-to-builddir/build-mingw-arm-none-eabi -- --enable-newlib-nano --config-flags-gcc=--with-multilib-list=aprofile,rmprofile
 
 ### Known build issues
 
