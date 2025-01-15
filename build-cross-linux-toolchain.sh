@@ -1453,7 +1453,7 @@ EOF
       # Capture the results
       mkdir -p "$resultdir"
       name=`echo "$stage" | sed "s/check-target-//" | sed "s/check-//"`
-      for f in `find "$objdir_local" -name "$name.log" -o -name "$name.sum" -o -name "$name.xml"`
+      for f in `find "$objdir_local" -type f -name "$name.log" -o -type f -name "$name.sum" -o -type f -name "$name.xml"`
       do
         cp "$f" "$resultdir"
       done
@@ -1486,7 +1486,7 @@ EOF
     # Capture the results
     mkdir -p "$resultdir"
     name=libffi
-    for f in `find "$objdir/libffi" -name "$name.log" -o -name "$name.sum" -o -name "$name.xml"`
+    for f in `find "$objdir/$name" -type f -name "$name.log" -o -type f -name "$name.sum" -o -type f -name "$name.xml"`
     do
       cp "$f" "$resultdir"
     done

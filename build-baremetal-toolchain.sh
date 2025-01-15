@@ -1310,7 +1310,7 @@ while true; do
     # Capture the results
     mkdir -p "$resultdir/vanilla"
     name=`echo "$stage" | sed "s/check-target-//" | sed "s/check-//"`
-    for f in `find "$objdir" -name "$name.log" -o -name "$name.sum" -o -name "$name.xml"`
+    for f in `find "$objdir" -type f -name "$name.log" -o -type f -name "$name.sum" -o -type f -name "$name.xml"`
     do
       cp "$f" "$resultdir/vanilla"
     done
@@ -1362,7 +1362,7 @@ while true; do
         # Capture the results
         mkdir -p "$resultdir/vanilla"
         name=`echo "$stage" | sed "s/check-target-//" | sed "s/check-//"`
-        for f in `find "$objdir/gdb" -name "$name.log" -o -name "$name.sum"`
+        for f in `find "$objdir/gdb" -type f -name "$name.log" -o -type f -name "$name.sum"`
         do
           cp "$f" "$resultdir/vanilla"
         done
