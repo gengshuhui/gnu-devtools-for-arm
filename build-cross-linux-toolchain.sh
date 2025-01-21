@@ -1104,8 +1104,7 @@ while true; do
     rsync -a --exclude=.git --delete-after "$linux_src/" "$objdir/linux/"
 
     kernel_headers_objdir="$objdir/linux"
-    kernel_headers_extra_install_envflags="PATH=${installdir}/${host_prefix}/bin:$PATH \
-					  ARCH=$linux_arch CROSS_COMPILE=$target- \
+    kernel_headers_extra_install_envflags="ARCH=$linux_arch CROSS_COMPILE=$target- \
 					  INSTALL_HDR_PATH=$stage_include"
     kernel_headers_install_targets="headers_install"
     do_install kernel_headers
