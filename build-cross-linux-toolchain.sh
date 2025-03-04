@@ -998,7 +998,7 @@ while true; do
     gdb_destdir="${installdir}"
     do_config_build_install gdb
 
-    if [ ${gdb_with_python:-no} = "yes" ]; then
+    if [ ${gdb_with_python:-no} != "no" ]; then
         push_stages "gdb-python"
     fi
 
@@ -1021,7 +1021,7 @@ while true; do
     gdb_python_cxxflags="$cflags"
 
     set_gdb_config
-    gdb_python_config="${gdb_config:-} --with-python=yes --program-prefix=$target- --program-suffix=-py"
+    gdb_python_config="${gdb_config:-} --with-python=$gdb_with_python --program-prefix=$target- --program-suffix=-py"
     gdb_python_build_targets="all-gdb"
     gdb_python_install_targets="install-gdb"
     gdb_python_destdir="${installdir}"
