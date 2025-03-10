@@ -12,6 +12,13 @@ fi
 script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 tmpdir=$(mktemp -d)
 
+cleanup()
+{
+  rm -rf "$tmpdir"
+}
+
+trap cleanup 0
+
 default_install_dir="$HOME/.aem-installs"
 
 verbose()
