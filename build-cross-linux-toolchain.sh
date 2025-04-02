@@ -832,7 +832,7 @@ while true; do
     if [ -n "${hostisl:-}" ]; then
       isl_srcdir=$isl_src
       isl_objdir=$objdir/isl
-      isl_config="--disable-maintainer-mode --disable-shared --prefix=${host_tools_install} ${hostgmp:+--with-gmp-prefix=$hostgmp} ${extra_config_flags_host_tools:-}"
+      isl_config="--disable-maintainer-mode --disable-shared --prefix=${host_tools_install} ${hostgmp:+--with-gmp-prefix=$hostgmp} ${extra_config_flags_host_tools:-} ${host_config_flag:-}"
       do_config_build_install isl
     fi
     ;;
@@ -841,7 +841,7 @@ while true; do
     if [ -n "${hostcloog:-}" ]; then
       cloog_srcdir=$cloog_src
       cloog_objdir=$objdir/cloog
-      cloog_config="--disable-maintainer-mode --disable-shared --prefix=${host_tools_install} ${hostgmp:+--with-gmp-prefix=$hostgmp} ${hostisl:+--with-isl-prefix=$hostisl} ${extra_config_flags_host_tools:-}"
+      cloog_config="--disable-maintainer-mode --disable-shared --prefix=${host_tools_install} ${hostgmp:+--with-gmp-prefix=$hostgmp} ${hostisl:+--with-isl-prefix=$hostisl} ${extra_config_flags_host_tools:-} ${host_config_flag:-}"
       do_config_build_install cloog
     fi
     ;;
