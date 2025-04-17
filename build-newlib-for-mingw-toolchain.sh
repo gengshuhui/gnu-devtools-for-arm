@@ -72,5 +72,5 @@ newlibbuilddir="${dirname}/build-newlib-${target}"
 "$srcdir/gnu-devtools-for-arm/build-baremetal-toolchain.sh" --target=$target --with-language=fortran --srcdir=$srcdir --builddir=$newlibbuilddir --release --enable-binutils --enable-gcc --enable-gdb --no-check-gdb --enable-newlib --disable-qemu ${downstream_args[@]} install-newlib --newlib-installdir=${builddir}/install
 
 rsync -a $newlibbuilddir/install/$target/include/ $builddir/install/$target/include/
-rsync -a $newlibbuilddir/install/$target/lib/ $builddir/install/lib/gcc/$target/*/
+rsync -a $newlibbuilddir/install/$target/lib/ $builddir/install/$target/lib/
 rsync -a $newlibbuilddir/install/lib/gcc/$target/*/ $builddir/install/lib/gcc/$target/*/
