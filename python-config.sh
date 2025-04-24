@@ -16,7 +16,7 @@ This scipt is used to configure GDB. GDB's configuration file uses
 --with-python=PATH/TO/SCRIPT command line to drive Python support for MinGW
 builds.
 
-Note: You must setup BLD_HOST_PYTHON_DIR environment variable to point to local
+Note: You must setup PYTHON_FOR_WINDOWS_DIR environment variable to point to local
 Python (MSI) unzipped content.
 
 Example usage:
@@ -46,13 +46,13 @@ Options:
 EOF
 }
 
-if [ ! -d "$BLD_HOST_PYTHON_DIR" ]; then
-  echo "error: BLD_HOST_PYTHON_DIR='$BLD_HOST_PYTHON_DIR' directory not found! " >&2
+if [ ! -d "$PYTHON_FOR_WINDOWS_DIR" ]; then
+  echo "error: PYTHON_FOR_WINDOWS_DIR='$PYTHON_FOR_WINDOWS_DIR' directory not found! " >&2
   exit 1
 fi
 
-python_win_dir="$BLD_HOST_PYTHON_DIR"
-python_win_dir_libs="$BLD_HOST_PYTHON_DIR/libs"
+python_win_dir="$PYTHON_FOR_WINDOWS_DIR"
+python_win_dir_libs="$PYTHON_FOR_WINDOWS_DIR/libs"
 python_win_ver=`basename -s .lib ${python_win_dir_libs}/python3[0-9]*.lib`
 
 # Parse command-line options
