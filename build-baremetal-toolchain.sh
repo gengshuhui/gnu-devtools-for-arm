@@ -245,6 +245,7 @@ fi
 ## Enabled by default, but note may be overridden by host or target options
 package_flag=0
 release_flag=0
+gdb_only_flag=0
 extra_languages=""
 flag_check_gdb=0
 flag_debug_options_flag=0
@@ -263,7 +264,7 @@ flag_morello=0
 check_targets="check-binutils check-ld check-gas check-gcc check-g++ check-target-libatomic check-target-libstdc++-v3 check-gdb"
 check_nano_targets="check-gcc-nano check-g++-nano check-target-libstdc++-v3-nano"
 # Parse command-line options
-args=$(getopt -ohj:l:x -l bugurl:,builddir:,config-flags-binutils:,config-flags-gcc:,config-flags-host-tools:,config-flags-qemu:,debug,debug-target,dejagnu-site:,dejagnu-src:,enable-gdb,enable-gdb-with-python:,disable-gdb,enable-gcc,disable-gcc,enable-binutils,disable-binutils,enable-newlib,disable-newlib,enable-maintainer-mode,disable-maintainer-mode,enable-newlib-nano,disable-newlib-nano,enable-newlib-nano-check,disable-newlib-nano-check,enable-qemu,disable-qemu,help,host-toolchain-path:,ldflags-for-target:,ldflags-for-nano-target:,newlib-installdir:,package,no-package,qemu-test-path:,release,no-release,resultdir:,srcdir:,tag:,tardir:,target:,target-board:,timestamp:,with-language:,check-gdb,no-check-gdb,morello,host: -n $(basename "$0") -- "$@")
+args=$(getopt -ohj:l:x -l bugurl:,builddir:,config-flags-binutils:,config-flags-gcc:,config-flags-host-tools:,config-flags-qemu:,debug,debug-target,dejagnu-site:,dejagnu-src:,enable-gdb,enable-gdb-with-python:,disable-gdb,enable-gcc,disable-gcc,enable-binutils,disable-binutils,enable-newlib,disable-newlib,enable-maintainer-mode,disable-maintainer-mode,enable-newlib-nano,disable-newlib-nano,enable-newlib-nano-check,disable-newlib-nano-check,enable-qemu,disable-qemu,gdb-only,help,host-toolchain-path:,ldflags-for-target:,ldflags-for-nano-target:,newlib-installdir:,package,no-package,qemu-test-path:,release,no-release,resultdir:,srcdir:,tag:,tardir:,target:,target-board:,timestamp:,with-language:,check-gdb,no-check-gdb,morello,host: -n $(basename "$0") -- "$@")
 eval set -- "$args"
 while [ $# -gt 0 ]; do
   if [ -n "${opt_prev:-}" ]; then
@@ -396,6 +397,9 @@ while [ $# -gt 0 ]; do
   --package)
     package_flag=1
     ;;
+  --gdb-only)
+    gdb_only_flag=1
+    ;;
   --no-package)
     package_flag=0
     ;;
@@ -514,6 +518,9 @@ qemu_prefix="${qemu_prefix:-/}"
 
 # Install tree staging area for qemu build.
 qemu_installdir="${qemu_installdir:-$builddir/install-qemu}"
+
+# Install tree staging area for gdb only.
+gdb_only_installdir="${gdb_only_installdir:-$builddir/install-gdb}"
 
 srcdir="${srcdir:-$builddir/src}"
 objdir="${objdir:-$builddir/obj}"
@@ -766,6 +773,7 @@ while true; do
     rm -rf "$installdir"
     rm -rf "$nano_installdir"
     rm -rf "$qemu_installdir"
+    rm -rf "$gdb_only_installdir"
     rm -rf "$objdir"
     push_stages "start"
     ;;
@@ -952,6 +960,11 @@ while true; do
       do_install gdb
     fi
 
+    if [ "$gdb_only_flag" -eq 1 ]; then
+      gdb_destdir="${gdb_only_installdir}"
+      do_install gdb
+    fi
+
     if [ ${gdb_with_python:-no} != "no" ]; then
         push_stages "gdb-python"
     fi
@@ -971,6 +984,10 @@ while true; do
     do_config_build_install gdb_python
     if [ $flag_enable_newlib_nano -eq 1 ]; then
       gdb_destdir=${nano_installdir}
+      do_install gdb_python
+    fi
+    if [ "$gdb_only_flag" -eq 1 ]; then
+      gdb_python_destdir="${gdb_only_installdir}"
       do_install gdb_python
     fi
     ;;
@@ -1247,7 +1264,7 @@ while true; do
     ;;
 
   perms)
-    if [ $package_flag -eq 1 ]; then
+    if [ "$package_flag" -eq 1 ]; then
       perms_dir="$installdir$prefix"
       if [ "$newlib_installdir" != "$installdir" ]; then
         perms_dir="$newlib_installdir"
@@ -1257,7 +1274,7 @@ while true; do
       chmod -R u+rw,go+r,go-w "$perms_dir"
       # propagate user's execute permission to group
       find "$perms_dir" -perm -0100 -print0 | xargs -0 chmod g+x
-      push_stages "tar"
+      push_stages tar
     fi
     ;;
 
@@ -1278,15 +1295,27 @@ while true; do
       chmod 444 "$tarball"
 
       if [ ${flag_enable_qemu} -eq 1 ]; then
-	echo "$layout_version" > "$qemu_installdir$qemu_prefix/.version"
-	tarball="$tardir/$target-qemu.tar.xz"
-	rm -f "$tarball"
-	if test "$qemu_installdir$qemu_prefix" != "$installdir$prefix" -a -d "$qemu_installdir$qemu_prefix"
-	then
-	  ${TAR_CMD} -c -C "$qemu_installdir$qemu_prefix" -J -f "$tarball.t" --owner 0 --group 0 --mode=a+u,og-w .
-	  mv "$tarball.t" "$tarball"
-	  chmod 440 "$tarball"
-	fi
+        echo "$layout_version" > "$qemu_installdir$qemu_prefix/.version"
+        tarball="$tardir/$target-qemu.tar.xz"
+        rm -f "$tarball"
+        if test "$qemu_installdir$qemu_prefix" != "$installdir$prefix" -a -d "$qemu_installdir$qemu_prefix"
+        then
+          ${TAR_CMD} -c -C "$qemu_installdir$qemu_prefix" -J -f "$tarball.t" --owner 0 --group 0 --mode=a+u,og-w .
+          mv "$tarball.t" "$tarball"
+          chmod 440 "$tarball"
+        fi
+      fi
+      if [ $gdb_only_flag -eq 1 ]; then
+        echo "$layout_version" > "$gdb_only_installdir/.version"
+        tarball="$tardir/$target-gdb.tar.xz"
+        rm -f "$tarball"
+        if [ -d "$gdb_only_installdir" ]; then
+          ${TAR_CMD} -c -C "$gdb_only_installdir" -J -f "$tarball.t" --owner 0 --group 0 --mode=a+u,og-w .
+          mv "$tarball.t" "$tarball"
+          chmod 444 "$tarball"
+        else
+          echo "Error: Directory '$gdb_only_installdir' does not exist."
+        fi
       fi
     fi
     ;;
