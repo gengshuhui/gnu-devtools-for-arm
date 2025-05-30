@@ -940,6 +940,13 @@ while true; do
     libexpat_build_targets="lib"
     libexpat_install_targets="install"
     do_config_build_install libexpat
+    # Upgrade Note: Updating libexpat from version 2.2.5 to 2.7.1.
+    # Workaround: Delete libexpat.la to prevent incorrect linker flags from being injected
+    # when building GDB with a static archive of libexpat. This .la file may cause libtool
+    # or the build system to pull in unnecessary dependencies like -lm and the libm.a static
+    # archive, which leads to link errors in environments where libm is not available.
+    # Removing the .la file ensures a cleaner and more predictable link process.
+    rm -f $hostexpat/lib/libexpat.la
     ;;
 
   main-gdb)
