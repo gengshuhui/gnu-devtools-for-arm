@@ -1038,7 +1038,6 @@ while true; do
 		      --disable-shared \
 		      --disable-nls \
 		      --disable-threads \
-		      --disable-tls \
 		      --enable-checking=$flag_check_final \
 		      --enable-languages=$languages_gcc1 \
 		      --without-cloog \
@@ -1157,7 +1156,6 @@ while true; do
 			--disable-shared \
 			--disable-nls \
 			--disable-threads \
-			--disable-tls \
 			--enable-checking=$flag_check_final \
 			--enable-languages=$languages \
 			--with-newlib \
@@ -1210,7 +1208,6 @@ while true; do
                                --disable-shared \
                                --disable-nls \
                                --disable-threads \
-                               --disable-tls \
                                --enable-checking=$flag_check_final \
                                --enable-languages=$languages \
                                --with-newlib \
