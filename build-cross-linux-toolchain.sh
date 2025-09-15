@@ -1063,9 +1063,9 @@ while true; do
     fi
     gdbserver_objdir="$objdir/gdbserver"
 
-    CPPFLAGS="--sysroot=$sysroot"
-    CXXFLAGS="--sysroot=$sysroot"
-    CPPFLAGS="--sysroot=$sysroot"
+    CPPFLAGS="--sysroot=$installdir/${sysroot}"
+    CXXFLAGS="--sysroot=$installdir/${sysroot}"
+    CFLAGS="--sysroot=$installdir/${sysroot}"
 
     # Use --disable-gdb when configuring gdbserver to avoid the need for mpfr and gmp.
     gdbserver_config=" --target=$target \
