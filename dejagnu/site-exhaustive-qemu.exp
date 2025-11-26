@@ -11,7 +11,7 @@ set standard_arm_eabi_target_list [list "arm-eabi-qemu-ar-class{-marm/-march=arm
                                     "arm-eabi-qemu-cortex-m7{-mthumb/-mcpu=cortex-m7}" \
                                     "arm-eabi-qemu-cortex-m33{-mthumb/-mcpu=cortex-m23}" \
                                     "arm-eabi-qemu-cortex-m33{-mthumb/-mcpu=cortex-m33}" \
-                                    "arm-eabi-qemu-cortex-m55{-mthumb/-mcpu=cortex-m55}" \
+                                    "arm-eabi-qemu-cortex-m55{-mthumb/-mcpu=cortex-m55/-mfloat-abi=hard}" \
                                    ]
 
 set standard_arm_eabi_target_libs_list [list "arm-eabi-qemu-ar-class{-marm/-march=armv7-a/-mfloat-abi=soft/-mfpu=auto}" \
@@ -21,7 +21,7 @@ set standard_arm_eabi_target_libs_list [list "arm-eabi-qemu-ar-class{-marm/-marc
                                         "arm-eabi-qemu-cortex-m7{-mthumb/-mcpu=cortex-m7}" \
                                         "arm-eabi-qemu-cortex-m33{-mthumb/-mcpu=cortex-m23}" \
                                         "arm-eabi-qemu-cortex-m33{-mthumb/-mcpu=cortex-m33}" \
-                                        "arm-eabi-qemu-cortex-m55{-mthumb/-mcpu=cortex-m55}" \
+                                        "arm-eabi-qemu-cortex-m55{-mthumb/-mcpu=cortex-m55/-mfloat-abi=hard}" \
                                        ]
 
 set standard_arm_lnx_target_list [list "arm-lnx-qemu" \

@@ -11,7 +11,7 @@ set standard_arm_eabi_target_list [list "arm-eabi-aem{-marm/-march=armv7-a}" \
 					"arm-eabi-mps2-armv7e-m{-mthumb/-mcpu=cortex-m7}" \
                     "arm-eabi-mps2-armv8-m.base{-mthumb/-mcpu=cortex-m23}" \
 					"arm-eabi-mps2-armv8-m.main{-mthumb/-mcpu=cortex-m33}" \
-					"arm-eabi-mps2-armv8.1-m.main{-mthumb/-mcpu=cortex-m55}" \
+					"arm-eabi-mps2-armv8.1-m.main{-mthumb/-mcpu=cortex-m55/-mfloat-abi=hard}" \
                     ]
 
 set standard_arm_eabi_target_libs_list [list "arm-eabi-aem{-marm/-march=armv7-a}" \
@@ -21,7 +21,7 @@ set standard_arm_eabi_target_libs_list [list "arm-eabi-aem{-marm/-march=armv7-a}
 					"arm-eabi-mps2-armv7e-m{-mthumb/-mcpu=cortex-m7}" \
                     "arm-eabi-mps2-armv8-m.base{-mthumb/-mcpu=cortex-m23}" \
 					"arm-eabi-mps2-armv8-m.main{-mthumb/-mcpu=cortex-m33}" \
-					"arm-eabi-mps2-armv8.1-m.main{-mthumb/-mcpu=cortex-m55}" \
+					"arm-eabi-mps2-armv8.1-m.main{-mthumb/-mcpu=cortex-m55/-mfloat-abi=hard}" \
                     ]
 
 set standard_arm_lnx_target_list [list "arm-lnx-qemu" \
