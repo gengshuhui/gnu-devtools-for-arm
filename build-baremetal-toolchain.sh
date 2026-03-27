@@ -213,6 +213,13 @@ set_gdb_config()
     # [1] See commit 991180627851801f1999d1ebbc0e569a17e47c74 from  binutils-gdb--gdb: Use toplevel configure for GMP and MPFR for gdb.
     # https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=991180627851801f1999d1ebbc0e569a17e47c74
 
+    gdb_prefix="$prefix"
+    if [ "$gdb_prefix" = "/" ]; then
+      # Avoid deriving UNC-like //... paths on Windows while preserving
+      # GDB's normal relocatable path handling.
+      gdb_prefix="/."
+    fi
+
     gdb_config="${binutils_config_flags:-} \
                    --disable-binutils \
                    --disable-sim \
@@ -220,7 +227,7 @@ set_gdb_config()
                    --disable-ld \
                    --enable-plugins \
                    --target=$target \
-                   --prefix=$prefix \
+                   --prefix=$gdb_prefix \
                    ${bugurl:+--with-bugurl="\"$bugurl\""} \
                    ${hostmpfr:+--with-libmpfr-prefix=$hostmpfr} \
                    ${hostmpfr:+--with-libmpfr-type=static} \
