@@ -540,6 +540,8 @@ esac
 
 if [ $flag_enable_mingw -eq 1 ]; then
   host_arg="--host=$host"
+  host_tools_triplet="$host"
+
 fi
 
 if [ $release_flag -eq 0 ]; then
@@ -681,7 +683,7 @@ esac
 mkdir -p "$builddir"
 cd "$builddir"
 
-for component in gcc linux "$libname" gmp mpfr mpc binutils isl
+for component in gcc linux "$libname" gmp mpfr mpc binutils isl zstd
 do
   find_component_or_error "$srcdir" $component
 done
@@ -739,6 +741,7 @@ hosticonv="$host_tools_install"
 hostmpfr="$host_tools_install"
 hostmpc="$host_tools_install"
 hostexpat="$host_tools_install"
+hostzstd="$host_tools_install"
 
 # We are (currently) tolerant to absence ISL and CLOOG hence we only setup
 # the relevant --with- flags if the source is present.  These are set here
@@ -810,7 +813,7 @@ while true; do
   start)
     mk_bin_dirs $host_prefix $build_sysroot
     write_build_status > build.status
-    push_stages gmp mpfr mpc isl cloog iconv qemu binutils-chain gdb perms
+    push_stages gmp mpfr mpc isl cloog iconv zstd qemu binutils-chain gdb perms
     ;;
 
   gmp)
@@ -849,6 +852,22 @@ while true; do
       cloog_objdir=$objdir/cloog
       cloog_config="--disable-maintainer-mode --disable-shared --prefix=${host_tools_install} ${hostgmp:+--with-gmp-prefix=$hostgmp} ${hostisl:+--with-isl-prefix=$hostisl} ${host_arg:-} ${extra_config_flags_host_tools:-}"
       do_config_build_install cloog
+    fi
+    ;;
+
+  zstd)
+    if [ -n "${hostzstd:-}" ]; then
+      zstd_srcdir="$zstd_src/lib"
+      zstd_objdir="$zstd_src/lib"
+      zstd_build_targets="libzstd.a-release"
+      zstd_install_targets="install-static install-includes"
+      zstd_extra_install_envflags="PREFIX=$hostzstd"
+      zstd_extra_make_envflags=
+      if [ $flag_enable_mingw -eq 1 ]; then
+        zstd_extra_make_envflags="CC=${host_tools_triplet}-gcc AR=${host_tools_triplet}-ar RANLIB=${host_tools_triplet}-ranlib"
+      fi
+      do_make zstd
+      do_install zstd
     fi
     ;;
 
@@ -1101,7 +1120,8 @@ while true; do
         ${hostmpfr:+--with-mpfr=$hostmpfr} \
         ${hostmpc:+--with-mpc=$hostmpc} \
         ${hostcloog:+--with-cloog=$hostcloog} \
-        ${hostisl:+--with-isl=$hostisl}"
+        ${hostisl:+--with-isl=$hostisl} \
+        ${hostzstd:+--with-zstd=$hostzstd}"
     fi
     gcc1_srcdir=$gcc_src
     gcc1_objdir=$objdir/gcc1
@@ -1229,7 +1249,8 @@ EOF
       gcc2_host_config_options="\
         ${hostgmp:+--with-gmp=$hostgmp} \
         ${hostmpfr:+--with-mpfr=$hostmpfr} \
-        ${hostmpc:+--with-mpc=$hostmpc}"
+        ${hostmpc:+--with-mpc=$hostmpc} \
+        ${hostzstd:+--with-zstd=$hostzstd}"
     fi
     gcc2_srcdir="$gcc_src"
     gcc2_objdir="$objdir/gcc2"
@@ -1363,6 +1384,7 @@ EOF
             ${hostisl:+--with-isl=$hostisl} \
             ${hostcloog:+--with-cloog=$hostcloog} \
             ${host_arg:-} \
+            ${hostzstd:+--with-zstd=$hostzstd} \
             ${extra_config_flags_host_tools:-} \
             ${extra_config_flags_gcc:-}"
     gcc3_destdir=${installdir}
@@ -1390,7 +1412,8 @@ EOF
          ${hostmpfr:+--with-mpfr=$hostmpfr} \
          ${hostmpc:+--with-mpc=$hostmpc} \
          ${hostisl:+--with-isl=$hostisl} \
-         ${hostcloog:+--with-cloog=$hostcloog}"
+         ${hostcloog:+--with-cloog=$hostcloog} \
+         ${hostzstd:+--with-zstd=$hostzstd}"
     fi
     gcc4_srcdir=$gcc_src
     gcc4_objdir=$objdir/gcc4
