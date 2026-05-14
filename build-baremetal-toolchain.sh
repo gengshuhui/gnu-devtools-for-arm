@@ -689,7 +689,7 @@ if empty_stages_p; then
   fi
 fi
 
-for component in gcc linux gmp mpfr mpc binutils newlib isl
+for component in gcc linux gmp mpfr mpc binutils newlib isl zstd
 do
   find_component_or_error "$srcdir" $component
 done
@@ -713,6 +713,7 @@ hosticonv="$host_tools_install"
 hostmpfr="$host_tools_install"
 hostmpc="$host_tools_install"
 hostexpat="$host_tools_install"
+hostzstd="$host_tools_install"
 
 # We are (currently) tolerant to absence ISL and CLOOG hence we only setup
 # the relevant --with- flags if the source is present.  These are set here
@@ -748,6 +749,7 @@ esac
 
 if [ $flag_enable_mingw -eq 1 ]; then
   host_arg="--host=$host"
+  host_tools_triplet="$host"
 fi
 
 RUNTESTFLAGS="${target_board:+--target_board=$target_board} ${RUNTESTFLAGS:-}"
@@ -785,13 +787,13 @@ while true; do
 
   start-bootstrap-newlib)
     mk_bin_dirs $prefix
-    push_stages gmp mpfr mpc isl cloog iconv binutils gdb gcc1 newlib newlib-nano gcc2 gcc2-nano copy_newlib_build_flags
+    push_stages gmp mpfr mpc isl cloog iconv zstd binutils gdb gcc1 newlib newlib-nano gcc2 gcc2-nano copy_newlib_build_flags
     ;;
 
   start)
     mk_bin_dirs $prefix
     write_build_status > build.status
-    push_stages gmp mpfr mpc isl cloog qemu iconv binutils gdb gcc1 newlib newlib-nano gcc2 gcc2-nano perms
+    push_stages gmp mpfr mpc isl cloog qemu iconv zstd binutils gdb gcc1 newlib newlib-nano gcc2 gcc2-nano perms
     ;;
 
   gmp)
@@ -854,6 +856,22 @@ while true; do
                    ${extra_config_flags_qemu:-}"
       qemu_destdir=
       do_config_build_install qemu
+    fi
+    ;;
+
+  zstd)
+    if [ -n "${hostzstd:-}" ]; then
+      zstd_srcdir="$zstd_src/lib"
+      zstd_objdir="$zstd_src/lib"
+      zstd_build_targets="libzstd.a-release"
+      zstd_install_targets="install-static install-includes"
+      zstd_extra_install_envflags="PREFIX=$hostzstd"
+      zstd_extra_make_envflags=
+      if [ $flag_enable_mingw -eq 1 ]; then
+        zstd_extra_make_envflags="CC=${host_tools_triplet}-gcc AR=${host_tools_triplet}-ar RANLIB=${host_tools_triplet}-ranlib"
+      fi
+      do_make zstd
+      do_install zstd
     fi
     ;;
 
@@ -1018,7 +1036,8 @@ while true; do
           ${hostmpfr:+--with-mpfr=$hostmpfr} \
           ${hostmpc:+--with-mpc=$hostmpc} \
           ${hostcloog:+--with-cloog=$hostcloog} \
-          ${hostisl:+--with-isl=$hostisl}"
+          ${hostisl:+--with-isl=$hostisl} \
+          ${hostzstd:+--with-zstd=$hostzstd}"
       fi
       gcc1_srcdir=$gcc_src
       gcc1_objdir=$objdir/gcc1
@@ -1161,6 +1180,7 @@ while true; do
 			${hostmpc:+--with-mpc=$hostmpc} \
 			${hostcloog:+--with-cloog=$hostcloog} \
 			${hostisl:+--with-isl=$hostisl} \
+			${hostzstd:+--with-zstd=$hostzstd} \
 			--disable-shared \
 			--disable-nls \
 			--disable-threads \
@@ -1213,7 +1233,8 @@ while true; do
                                ${hostmpfr:+--with-mpfr=$hostmpfr} \
                                ${hostmpc:+--with-mpc=$hostmpc} \
                                ${hostcloog:+--with-cloog=$hostcloog} \
-                               ${hostisl:+--with-isl=$hostisl}\
+                               ${hostisl:+--with-isl=$hostisl} \
+                               ${hostzstd:+--with-zstd=$hostzstd} \
                                --disable-shared \
                                --disable-nls \
                                --disable-threads \
