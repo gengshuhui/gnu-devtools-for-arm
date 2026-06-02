@@ -1192,7 +1192,7 @@ while true; do
 	do_make gcc2
       else
 	gcc2_build_targets="all-gcc all-target-libgcc"
-	gcc2_extra_make_envflags="LDFLAGS_FOR_TARGET=${ldflags_for_target:-}"
+	gcc2_extra_make_envflags="LDFLAGS_FOR_TARGET='${ldflags_for_target:-}'"
 	gcc2_cflags="$cflags"
 	gcc2_install_targets="install-gcc install-target-libgcc install-html-gcc install-target-libstdc++-v3 install-html-target-libstdc++-v3 install-target-libgfortran"
 	do_make gcc2
@@ -1233,7 +1233,7 @@ while true; do
 	gcc2_nano_cflags_for_target="${cflags_for_nano_target:-}"
 	gcc2_nano_cxxflags_for_target="${cxxflags_for_nano_target:-}"
 	gcc2_nano_ldflags_for_target="${ldflags_for_nano_target:-}"
-	gcc2_nano_extra_make_envflags="LDFLAGS_FOR_TARGET=${ldflags_for_nano_target:-}"
+	gcc2_nano_extra_make_envflags="LDFLAGS_FOR_TARGET='${ldflags_for_nano_target:-}'"
 	gcc2_nano_install_targets="install-gcc install-target-libgcc install-html-gcc install-target-libstdc++-v3 install-html-target-libstdc++-v3 install-target-libgfortran"
 	do_config gcc2_nano
 	gcc2_nano_build_targets="all-gcc all-target-libgcc"

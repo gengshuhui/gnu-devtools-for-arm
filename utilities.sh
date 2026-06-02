@@ -297,13 +297,13 @@ do_make ()
   fi
   update_stage "build ${component}"
 
-  make_opts=${extra_make_envflags:-}
-  if test $allow_parallel -eq 1
-  then
-    make_opts="$parallel"
-  fi
+  make_opts=${parallel:-}
 
-  make $make_opts -C $objdir $build_targets
+  if [ -n "${extra_make_envflags:-}" ]; then
+    eval make ${extra_make_envflags} ${make_opts:-} -C "$objdir" $build_targets
+  else
+    make ${make_opts:-} -C "$objdir" $build_targets
+  fi
   echo "${component}_build_targets=$build_targets" >> "$build_flags_path"
 }
 
