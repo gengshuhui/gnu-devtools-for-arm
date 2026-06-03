@@ -27,7 +27,7 @@ if { $tool != "gas" } {
 # We only support newlib on this target. We assume that all multilib
 # options have been specified before we get here.
 set_board_info compiler "[find_gcc]"
-set_board_info cflags	"-specs=rdimon.specs $additional_cflags [libgloss_include_flags] [newlib_include_flags]"
+set_board_info cflags	"-specs=mprofile-mps2.specs $additional_cflags [libgloss_include_flags] [newlib_include_flags]"
 set_board_info ldflags	"$startup_link_option [libgloss_link_flags] [newlib_link_flags] $additional_options"
 set_board_info sim      "models-run"
 set_board_info sim,options $mps2_aem_m_version
