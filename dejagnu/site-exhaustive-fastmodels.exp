@@ -4,8 +4,8 @@
 
 load_lib framework.exp
 
-set standard_arm_eabi_target_list [list "arm-eabi-aem{-marm/-march=armv7-a}" \
-					"arm-eabi-aem{-mthumb/-march=armv8-a+simd/-mfloat-abi=hard}" \
+set standard_arm_eabi_target_list [list "arm-eabi-aem{-marm/-march=armv7-a+fp/-mfloat-abi=softfp}" \
+					"arm-eabi-aem{-mthumb/-march=armv8-a+simd+crypto/-mfloat-abi=hard}" \
 					"arm-eabi-mps2-armv6-m{-mthumb/-mcpu=cortex-m0}" \
 					"arm-eabi-mps2-armv7-m{-mthumb/-mcpu=cortex-m3}" \
 					"arm-eabi-mps2-armv7e-m{-mthumb/-mcpu=cortex-m7/-mfloat-abi=hard}" \
@@ -14,8 +14,8 @@ set standard_arm_eabi_target_list [list "arm-eabi-aem{-marm/-march=armv7-a}" \
 					"arm-eabi-mps2-armv8.1-m.main{-mthumb/-mcpu=cortex-m55/-mfloat-abi=hard}" \
 					]
 
-set standard_arm_eabi_target_libs_list [list "arm-eabi-aem{-marm/-march=armv7-a}" \
-					"arm-eabi-aem{-mthumb/-march=armv8-a+simd/-mfloat-abi=hard}" \
+set standard_arm_eabi_target_libs_list [list "arm-eabi-aem{-marm/-march=armv7-a+fp/-mfloat-abi=softfp}" \
+					"arm-eabi-aem{-mthumb/-march=armv8-a+simd+crypto/-mfloat-abi=hard}" \
 					"arm-eabi-mps2-armv6-m{-mthumb/-mcpu=cortex-m0}" \
 					"arm-eabi-mps2-armv7-m{-mthumb/-mcpu=cortex-m3}" \
 					"arm-eabi-mps2-armv7e-m{-mthumb/-mcpu=cortex-m7/-mfloat-abi=hard}" \

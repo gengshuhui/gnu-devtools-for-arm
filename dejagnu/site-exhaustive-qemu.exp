@@ -4,8 +4,8 @@
 
 load_lib framework.exp
 
-set standard_arm_eabi_target_list [list "arm-eabi-qemu-ar-class{-marm/-march=armv7-a/-mfloat-abi=soft/-mfpu=auto}" \
-									"arm-eabi-qemu-ar-class{-mthumb/-march=armv8-a+simd/-mfloat-abi=hard/-mfpu=auto}" \
+set standard_arm_eabi_target_list [list "arm-eabi-qemu-ar-class{-marm/-march=armv7-a+fp/-mfloat-abi=softfp}" \
+									"arm-eabi-qemu-ar-class{-mthumb/-march=armv8-a+simd+crypto/-mfloat-abi=hard}" \
 									"arm-eabi-qemu-cortex-m0{-mthumb/-mcpu=cortex-m0}" \
 									"arm-eabi-qemu-cortex-m3{-mthumb/-mcpu=cortex-m3}" \
 									"arm-eabi-qemu-cortex-m7{-mthumb/-mcpu=cortex-m7/-mfloat-abi=hard}" \
@@ -14,8 +14,8 @@ set standard_arm_eabi_target_list [list "arm-eabi-qemu-ar-class{-marm/-march=arm
 									"arm-eabi-qemu-cortex-m55{-mthumb/-mcpu=cortex-m55/-mfloat-abi=hard}" \
 								   ]
 
-set standard_arm_eabi_target_libs_list [list "arm-eabi-qemu-ar-class{-marm/-march=armv7-a/-mfloat-abi=soft/-mfpu=auto}" \
-										"arm-eabi-qemu-ar-class{-mthumb/-march=armv8-a+simd/-mfloat-abi=hard/-mfpu=auto}" \
+set standard_arm_eabi_target_libs_list [list "arm-eabi-qemu-ar-class{-marm/-march=armv7-a+fp/-mfloat-abi=softfp}" \
+										"arm-eabi-qemu-ar-class{-mthumb/-march=armv8-a+simd+crypto/-mfloat-abi=hard}" \
 										"arm-eabi-qemu-cortex-m0{-mthumb/-mcpu=cortex-m0}" \
 										"arm-eabi-qemu-cortex-m3{-mthumb/-mcpu=cortex-m3}" \
 										"arm-eabi-qemu-cortex-m7{-mthumb/-mcpu=cortex-m7/-mfloat-abi=hard}" \
