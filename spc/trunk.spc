@@ -37,3 +37,9 @@ url=https://gcc.gnu.org/pub/gcc/infrastructure/mpc-1.2.1.tar.gz
 [mpfr]
 type=tarball
 url=https://gcc.gnu.org/pub/gcc/infrastructure/mpfr-4.1.0.tar.bz2
+
+[zstd]
+type=git
+url=https://github.com/facebook/zstd.git
+branch=dev
+remote-branch=dev
